@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MdDashboard, MdPeople, MdWork } from "react-icons/md"; // Icons from react-icons
+import { MdDashboard, MdPeople, MdWork, MdBook } from "react-icons/md"; // Added MdBook icon for bookings
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -18,40 +18,66 @@ const AdminSidebar = () => {
           <li>
             <Link
               to="/admin/dashboard"
-              className={`flex items-center gap-3 p-3 rounded-lg text-lg ${
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
                 isActive("/admin/dashboard")
                   ? "bg-indigo-600 text-white"
                   : "hover:bg-indigo-500 hover:text-white"
               }`}
             >
-              <MdDashboard className="text-2xl" />
+              <MdDashboard className="text-xl" />
               Dashboard
             </Link>
           </li>
           <li>
             <Link
               to="/admin/users"
-              className={`flex items-center gap-3 p-3 rounded-lg text-lg ${
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
                 isActive("/admin/users")
                   ? "bg-indigo-600 text-white"
                   : "hover:bg-indigo-500 hover:text-white"
               }`}
             >
-              <MdPeople className="text-2xl" />
+              <MdPeople className="text-xl" />
               Users
             </Link>
           </li>
           <li>
             <Link
               to="/admin/workers"
-              className={`flex items-center gap-3 p-3 rounded-lg text-lg ${
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
                 isActive("/admin/workers")
                   ? "bg-indigo-600 text-white"
                   : "hover:bg-indigo-500 hover:text-white"
               }`}
             >
-              <MdWork className="text-2xl" />
+              <MdWork className="text-xl" />
               Workers
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/services/create"
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
+                isActive("/admin/services/create")
+                  ? "bg-indigo-600 text-white"
+                  : "hover:bg-indigo-500 hover:text-white"
+              }`}
+            >
+              <MdWork className="text-xl" />
+              Create Service
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/bookings"
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
+                isActive("/admin/bookings")
+                  ? "bg-indigo-600 text-white"
+                  : "hover:bg-indigo-500 hover:text-white"
+              }`}
+            >
+              <MdBook className="text-xl" /> {/* Added icon for bookings */}
+              Bookings
             </Link>
           </li>
         </ul>

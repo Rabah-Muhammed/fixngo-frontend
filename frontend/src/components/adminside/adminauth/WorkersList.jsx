@@ -3,6 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2"; // SweetAlert2 for delete confirmation
 import Toast from "../../../utils/Toast"; // Import the Toast utility
 import AdminLayout from "./AdminLayout";
+import { FiLock, FiUnlock, FiTrash2 } from "react-icons/fi"; // Import icons for block/unblock and delete
 
 const WorkerList = () => {
   const [workers, setWorkers] = useState([]);
@@ -126,7 +127,7 @@ const WorkerList = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Workers List</h1>
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Workers List</h1>
 
       {loading ? (
         <p className="text-center text-xl">Loading...</p>
@@ -135,9 +136,9 @@ const WorkerList = () => {
       ) : workers.length === 0 ? (
         <p className="text-center text-xl">No workers found.</p>
       ) : (
-        <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-          <table className="w-full table-auto text-sm text-left text-gray-600">
-            <thead className="text-xs text-gray-700 uppercase bg-indigo-600">
+        <div className="overflow-x-auto shadow-xl rounded-lg bg-white">
+          <table className="w-full table-auto text-sm text-left text-gray-700">
+            <thead className="text-xs text-gray-100 uppercase bg-indigo-600">
               <tr>
                 <th scope="col" className="px-6 py-3">Email</th>
                 <th scope="col" className="px-6 py-3">Username</th>
@@ -149,10 +150,7 @@ const WorkerList = () => {
             </thead>
             <tbody className="text-sm font-medium text-gray-700">
               {workers.map((worker) => (
-                <tr
-                  key={worker.id}
-                  className="bg-gray-50 border-b hover:bg-gray-100"
-                >
+                <tr key={worker.id} className="bg-gray-50 border-b hover:bg-gray-100">
                   <td className="px-6 py-4">{worker.email}</td>
                   <td className="px-6 py-4">{worker.username}</td>
                   <td className="px-6 py-4">{worker.phone_number}</td>
@@ -168,21 +166,27 @@ const WorkerList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{formatDate(worker.date_joined)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex items-center space-x-3">
                     <button
                       onClick={() =>
                         handleBlockUnblock(worker.id, worker.is_active)
                       }
-                      className={`px-4 py-2 rounded-full text-white ${
+                      className={`px-5 py-2 rounded-full text-white ${
                         worker.is_active ? "bg-red-500" : "bg-green-500"
-                      } hover:bg-opacity-80 mr-2`}
+                      } hover:bg-opacity-80 flex items-center`}
                     >
+                      {worker.is_active ? (
+                        <FiLock className="inline-block mr-2" />
+                      ) : (
+                        <FiUnlock className="inline-block mr-2" />
+                      )}
                       {worker.is_active ? "Block" : "Unblock"}
                     </button>
                     <button
                       onClick={() => handleDelete(worker.id)}
-                      className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
+                      className="px-5 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80 flex items-center"
                     >
+                      <FiTrash2 className="inline-block mr-2" />
                       Delete
                     </button>
                   </td>

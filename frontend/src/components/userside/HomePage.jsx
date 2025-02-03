@@ -1,9 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import Footer from './Footer';
 import Navbar from './Navbar';
 
 const HomePage = () => {
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
+  const handleGetStarted = () => {
+    // Navigate to the services page when the button is clicked
+    navigate('/services');
+  };
+
   return (
     <div>
       <Navbar />
@@ -41,7 +49,10 @@ const HomePage = () => {
                 Whether you need help with maintenance, renovations, or expert advice, 
                 our network of professionals is here to assist you every step of the way.
               </motion.p>
-              <button className="px-6 py-2 bg-black text-white text-md font-semibold rounded-full shadow-md hover:bg-gray-800 transition duration-300">
+              <button
+                onClick={handleGetStarted} // Call handleGetStarted function on click
+                className="px-6 py-2 bg-black text-white text-md font-semibold rounded-full shadow-md hover:bg-gray-800 transition duration-300"
+              >
                 Get Started
               </button>
             </div>

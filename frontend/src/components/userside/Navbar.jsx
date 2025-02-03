@@ -35,7 +35,13 @@ const Navbar = () => {
           </div>
 
           <ul className="flex space-x-4 items-center">
-            {/* Register and Login Buttons */}
+            {/* Services Button (Visible to All Users) */}
+            <li>
+              <Link to="/services" className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm">
+                Services
+              </Link>
+            </li>
+
             {!isAuthenticated ? (
               <>
                 <li>
@@ -48,7 +54,6 @@ const Navbar = () => {
                     Login
                   </Link>
                 </li>
-                {/* Add "Sign up as Expert" button for worker signup */}
                 <li>
                   <Link to="/worker/signup" className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm">
                     Sign up as Expert
@@ -56,35 +61,27 @@ const Navbar = () => {
                 </li>
               </>
             ) : (
-              <li className="relative group">
-                <button
-                  className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
-                >
-                  {user?.username}
-                </button>
+              <>
 
-                {/* Dropdown menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <ul className="text-sm text-gray-700">
-                    <li>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 hover:bg-gray-100"
-                      >
-                        Profile
-                      </Link>
-                    </li>
-                    <li>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left block px-4 py-2 hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </li>
+                <li>
+                  <Link to="/bookings" className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm">
+                    Bookings
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/profile" className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm">
+                    Profile
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
             )}
           </ul>
         </div>

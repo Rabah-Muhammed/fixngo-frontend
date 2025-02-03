@@ -3,6 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2"; // SweetAlert2 for delete confirmation
 import Toast from "../../../utils/Toast"; // Import your Toast utility
 import AdminLayout from "./AdminLayout";
+import { FiEdit, FiTrash2, FiLock, FiUnlock } from "react-icons/fi"; // Import icons
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -27,13 +28,11 @@ const UsersList = () => {
       .then((response) => {
         setUsers(response.data);
         setLoading(false);
-        
       })
       .catch((error) => {
         console.error("Error fetching users:", error);
         setError("Failed to fetch users. Please try again.");
         setLoading(false);
-        
       });
   }, []);
 
@@ -67,10 +66,7 @@ const UsersList = () => {
             user.id === userId ? { ...user, is_active: !isActive } : user
           )
         );
-        Toast(
-          "success",
-          `User has been ${isActive ? "blocked" : "unblocked"} successfully.`
-        );
+        Toast("success", `User has been ${isActive ? "blocked" : "unblocked"} successfully.`);
       })
       .catch((error) => {
         console.error("Error updating user status:", error);
@@ -127,7 +123,7 @@ const UsersList = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Users List</h1>
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Users List</h1>
 
       {loading ? (
         <p className="text-center text-xl">Loading...</p>
@@ -136,9 +132,9 @@ const UsersList = () => {
       ) : users.length === 0 ? (
         <p className="text-center text-xl">No users found.</p>
       ) : (
-        <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-          <table className="w-full table-auto text-sm text-left text-gray-600">
-            <thead className="text-xs text-gray-700 uppercase bg-indigo-600">
+        <div className="overflow-x-auto shadow-xl rounded-lg bg-white">
+          <table className="w-full table-auto text-sm text-left text-gray-700">
+            <thead className="text-xs text-gray-100 uppercase bg-indigo-600">
               <tr>
                 <th scope="col" className="px-6 py-3">Email</th>
                 <th scope="col" className="px-6 py-3">Username</th>
@@ -166,19 +162,25 @@ const UsersList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{formatDate(user.date_joined)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex items-center space-x-2">
                     <button
                       onClick={() => handleBlockUnblock(user.id, user.is_active)}
-                      className={`px-4 py-2 rounded-full text-white ${
+                      className={`px-5 py-2 rounded-full text-white ${
                         user.is_active ? "bg-red-500" : "bg-green-500"
-                      } hover:bg-opacity-80 mr-2`}
+                      } hover:bg-opacity-80 flex items-center`}
                     >
+                      {user.is_active ? (
+                        <FiLock className="inline-block mr-2" />
+                      ) : (
+                        <FiUnlock className="inline-block mr-2" />
+                      )}
                       {user.is_active ? "Block" : "Unblock"}
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
+                      className="px-5 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80 flex items-center"
                     >
+                      <FiTrash2 className="inline-block mr-2" />
                       Delete
                     </button>
                   </td>

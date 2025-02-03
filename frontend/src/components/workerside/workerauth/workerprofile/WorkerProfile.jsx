@@ -14,6 +14,10 @@ const WorkerProfile = () => {
 
   const BASE_URL = "http://localhost:8000";
 
+  // Get today's date and calculate the maximum date (18+ years ago)
+  const today = new Date();
+  const minDate = new Date(today.setFullYear(today.getFullYear() - 18));  // 18 years ago
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -141,7 +145,7 @@ const WorkerProfile = () => {
 
   return (
     <WorkerLayout>
-      <div className="bg-gray-50 min-h-screen py-10">
+      <div className="bg-white min-h-screen py-10">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -176,7 +180,7 @@ const WorkerProfile = () => {
                   ].map((item, index) => (
                     <div
                       key={index}
-                      className="bg-gray-100 rounded-md p-3 shadow-sm"
+                      className="bg-white rounded-md p-3 shadow-sm"
                     >
                       <span className="block text-sm font-semibold text-gray-700">
                         {item.label}
@@ -244,7 +248,7 @@ const WorkerProfile = () => {
                       { value: "other", label: "Other" },
                     ],
                   },
-                  { name: "date_of_birth", label: "Date of Birth", type: "date" },
+                  { name: "date_of_birth", label: "Date of Birth", type: "date", min: "1900-01-01", max: minDate.toISOString().split("T")[0] },
                 ].map((field, index) => (
                   <div key={field.name} className="flex flex-col">
                     <label
@@ -284,6 +288,8 @@ const WorkerProfile = () => {
                         value={formData[field.name]}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md p-2 text-sm"
+                        max={field.max}
+                        min={field.min}
                       />
                     )}
                   </div>

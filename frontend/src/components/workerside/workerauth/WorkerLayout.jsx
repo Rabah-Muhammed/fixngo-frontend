@@ -4,9 +4,9 @@ import WorkerNavbar from "./WorkerNavbar";
 
 const WorkerLayout = ({ children }) => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-white">
       <WorkerSidebar />
-      <div className="flex-1 ml-64 bg-gray-50">
+      <div className="flex-1 ml-64 bg-white">
         <WorkerNavbar />
         <div className="pt-20 px-8">{children}</div>
       </div>
