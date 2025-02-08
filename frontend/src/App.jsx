@@ -39,7 +39,8 @@ import AdminCreateService from "./components/adminside/adminauth/AdminCreateServ
 import BookingsList from "./components/adminside/adminauth/BookingsList";
 
 
-
+import { PayPalScriptProvider } from "@paypal/react-paypal-js"; 
+import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
 
 
 
@@ -53,6 +54,7 @@ const PrivateRoute = ({ children }) => {
 const App = () => {
   const clientId = "500698877294-jam712pdk43id3s0v5mg9k1ol2jjdl6a.apps.googleusercontent.com"
   return (
+    <PayPalScriptProvider options={{ "client-id": "AcnzJJQ20E7sfAW3ZALrNApOHrz2tRyqNjZkmOzpbjErKto7iq3Vy3DJHp4qO7pWU7ntJcMIuMKI-uzC" }}>
     <Router>
       <GoogleOAuthProvider clientId={clientId}>
       <Routes>
@@ -68,7 +70,8 @@ const App = () => {
         <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
         <Route path="/worker/:workerId/slots" element={<WorkerSlotPage />} /> {/* Correctly map this route */}
         <Route path="/services/:serviceId/workers" element={<WorkersPage />} /> {/* Workers page with serviceId */}
-        <Route path="/bookings" element={<PrivateRoute><UserBookingsPage /></PrivateRoute>} /> 
+        <Route path="/bookings" element={<PrivateRoute><UserBookingsPage /></PrivateRoute>} />
+        <Route path="/checkout" element={<CheckoutPage />} />
 
 
         {/* Worker routes */}
@@ -92,6 +95,7 @@ const App = () => {
       </Routes>
       </GoogleOAuthProvider>
     </Router>
+    </PayPalScriptProvider>
   );
 };
 
