@@ -17,6 +17,9 @@ import ServiceDetailPage from "./components/userside/servicepage/ServiceDetailPa
 import WorkersPage from "./components/userside/servicepage/WorkersPage";
 import WorkerSlotPage from "./components/userside/servicepage/WorkerSlotPage";
 import UserBookingsPage from "./components/userside/bookings/UserBookingsPage";
+import BookingDetailPage from "./components/userside/bookings/BookingDetailPage";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js"; 
+import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
 
 
 // Worker-side components
@@ -26,6 +29,9 @@ import WorkerDashboardPage from "./components/workerside/workerauth/WorkerDashbo
 import WorkerProfile from "./components/workerside/workerauth/workerprofile/WorkerProfile";
 import SlotManagement from "./components/workerside/slotsmanage/SlotManagement";
 import ServiceSelection from "./components/workerside/servicemanage/ServiceSelection";
+import WorkerBookings from "./components/workerside/bookingmanage/WorkerBookings";
+import WorkerManageBookings from "./components/workerside/bookingmanage/WorkerManageBookings";
+
 
 
 
@@ -39,9 +45,6 @@ import AdminCreateService from "./components/adminside/adminauth/AdminCreateServ
 import BookingsList from "./components/adminside/adminauth/BookingsList";
 
 
-import { PayPalScriptProvider } from "@paypal/react-paypal-js"; 
-import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
-
 
 
 
@@ -54,7 +57,7 @@ const PrivateRoute = ({ children }) => {
 const App = () => {
   const clientId = "500698877294-jam712pdk43id3s0v5mg9k1ol2jjdl6a.apps.googleusercontent.com"
   return (
-    <PayPalScriptProvider options={{ "client-id": "AcnzJJQ20E7sfAW3ZALrNApOHrz2tRyqNjZkmOzpbjErKto7iq3Vy3DJHp4qO7pWU7ntJcMIuMKI-uzC" }}>
+    <PayPalScriptProvider options={{ "client-id": "Abbw-mOUb25GBacq0mna6jVOAGdre9n4QdtYDgx-AXrg7VdoBVM3Jom2adaSJiFQWdnSgeFJZES8da3H" }}>
     <Router>
       <GoogleOAuthProvider clientId={clientId}>
       <Routes>
@@ -72,6 +75,8 @@ const App = () => {
         <Route path="/services/:serviceId/workers" element={<WorkersPage />} /> {/* Workers page with serviceId */}
         <Route path="/bookings" element={<PrivateRoute><UserBookingsPage /></PrivateRoute>} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/booking/:bookingId" element={<BookingDetailPage />} />
+
 
 
         {/* Worker routes */}
@@ -81,6 +86,9 @@ const App = () => {
         <Route path="/worker/profile" element={<WorkerProfile />} />
         <Route path="/worker/services" element={<ServiceSelection />} />
         <Route path="/worker/slot-management" element={<SlotManagement />} />
+        <Route path="/worker/bookings" element={<WorkerBookings />} /> 
+        <Route path="/worker/manage-bookings" element={<WorkerManageBookings />} />
+        
 
 
         {/* Admin routes */}

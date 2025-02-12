@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MdDashboard, MdPerson } from "react-icons/md";
-import { FaTools } from "react-icons/fa";
+import { FaTools, FaClipboardList, FaClipboardCheck } from "react-icons/fa";
 import { RiCalendarCheckLine } from "react-icons/ri";
 
 const WorkerSidebar = () => {
@@ -11,13 +11,7 @@ const WorkerSidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="fixed top-0 left-0 h-full w-60 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-lg z-50">
-      {/* Sidebar Header */}
-      <div className="py-6 px-4 text-center border-b border-gray-700">
-        <h2 className="text-2xl font-extrabold text-indigo-400">FixNgo Worker</h2>
-        <p className="text-sm text-gray-400 mt-1">Your Services Dashboard</p>
-      </div>
-
+    <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-60 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-lg z-50 overflow-y-auto">
       {/* Sidebar Links */}
       <ul className="py-6 px-4 space-y-3">
         <li>
@@ -63,7 +57,7 @@ const WorkerSidebar = () => {
           <Link
             to="/worker/slot-management"
             className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
-              isActive("/worker/slots")
+              isActive("/worker/slot-management")
                 ? "bg-indigo-600 shadow-md"
                 : "hover:bg-indigo-500 hover:shadow-lg"
             }`}
@@ -72,6 +66,33 @@ const WorkerSidebar = () => {
             <span>Manage Slots</span>
           </Link>
         </li>
+        <li>
+          <Link
+            to="/worker/bookings"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/bookings")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <FaClipboardList className="text-lg" />
+            <span>Booking Requests</span>
+          </Link>
+        </li>
+        <li>
+        <Link
+          to="/worker/manage-bookings"
+          className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+            isActive("/worker/manage-bookings")
+              ? "bg-indigo-600 shadow-md"
+              : "hover:bg-indigo-500 hover:shadow-lg"
+          }`}
+        >
+          <FaClipboardCheck className="text-lg" />
+          <span>Manage Bookings</span>
+        </Link>
+      </li>
+
       </ul>
 
       {/* Footer */}

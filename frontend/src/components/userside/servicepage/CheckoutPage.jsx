@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { PayPalButtons } from "@paypal/react-paypal-js"; // No need for PayPalScriptProvider here
+import { PayPalButtons } from "@paypal/react-paypal-js";
 import { format } from "date-fns";
 import axios from "axios";
 import Navbar from "../Navbar";
@@ -17,6 +17,8 @@ const CheckoutPage = () => {
   const { workerId, slot, serviceId } = location.state || {};
 
   const [service, setService] = useState(null);
+  const [worker, setWorker] = useState(null);
+  const [platformFee, setPlatformFee] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    const fetchService = async () => {
+    const fetchDetails = async () => {
       const token = localStorage.getItem("userAccessToken");
       if (!token) {
         Toast("error", "You need to be logged in to proceed.");
@@ -35,21 +37,30 @@ const CheckoutPage = () => {
       }
 
       try {
-        const serviceRes = await axios.get(`${BASE_URL}/api/services/${serviceId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [serviceRes, workerRes, platformFeeRes] = await Promise.all([
+          axios.get(`${BASE_URL}/api/services/${serviceId}/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${BASE_URL}/api/workers/${workerId}/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${BASE_URL}/api/platform-fee/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
         setService(serviceRes.data);
+        setWorker(workerRes.data);
+        setPlatformFee(platformFeeRes.data.platform_fee);
       } catch (error) {
-        console.error("Error fetching service details:", error);
-        Toast("error", "Failed to load service details.");
+        Toast("error", "Failed to load details.");
         navigate("/");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchService();
+    fetchDetails();
   }, [workerId, slot, serviceId, navigate]);
 
   const handlePaymentSuccess = async (details) => {
@@ -72,10 +83,9 @@ const CheckoutPage = () => {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
 
-      Toast("success", "Booking confirmed!");
+      Toast("success", "Booking confirmed! You will need to pay the remaining balance to the worker later.");
       setTimeout(() => navigate("/bookings"), 1500);
     } catch (error) {
-      console.error("Booking failed", error.response?.data || error.message);
       Toast("error", "Failed to book slot. Try again.");
     }
   };
@@ -92,70 +102,62 @@ const CheckoutPage = () => {
   }
 
   const serviceFee = Number(service?.price) || 0;
+  const totalPrice = serviceFee + platformFee;
+  const remainingBalance = serviceFee;
   const serviceImage = service?.image ? `${BASE_URL}${service.image}` : "/default-service.png";
+  const workerName = worker?.username || "Unknown Worker";
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-          <h1 className="text-3xl font-bold text-center mb-8">Confirm Your Booking</h1>
+        <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8">
+          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">Confirm Your Booking</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Service Image on the Left */}
             <div className="flex justify-center">
-              <img
-                src={serviceImage || "/placeholder.svg"}
-                alt="Service"
-                className="w-full max-w-md h-72 object-cover rounded-lg shadow-md"
-              />
+              <img src={serviceImage} alt="Service" className="w-full max-w-md h-72 object-cover rounded-xl shadow-md transition-transform duration-300 transform hover:scale-105" />
             </div>
 
-            {/* Service Details on the Right */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">{service?.name || "Unknown Service"}</h2>
-              <p className="text-2xl font-bold text-gray-800 mb-4">
-                ${serviceFee.toFixed(2)}
-              </p>
+            <div className="bg-gray-50 p-6 rounded-xl shadow-lg">
+              <h2 className="text-3xl font-bold text-gray-800">{service?.name || "Service Name"}</h2>
+              <p className="text-lg text-gray-700 mt-2"><span className="font-semibold">Worker:</span> {workerName}</p>
+              <p className="text-lg text-gray-700"><span className="font-semibold">Service Area:</span> {worker?.service_area || "Not Available"}</p>
 
-              <div className="space-y-2">
+              <div className="mt-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="font-medium">Date:</span>
-                  <span>{format(new Date(slot.start_time), "MMM dd, yyyy")}</span>
+                  <span className="font-medium text-gray-600">Date:</span>
+                  <span className="font-semibold">{format(new Date(slot.start_time), "MMM dd, yyyy")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-medium">Time:</span>
-                  <span>
+                  <span className="font-medium text-gray-600">Time:</span>
+                  <span className="font-semibold">
                     {format(new Date(slot.start_time), "hh:mm a")} - {format(new Date(slot.end_time), "hh:mm a")}
                   </span>
                 </div>
               </div>
 
-              <hr className="my-4" />
+              <hr className="my-4 border-gray-300" />
 
-              {/* Payment Options */}
-              <h3 className="text-lg font-medium mb-2">Payment Options</h3>
-              <PayPalButtons
-                style={{ layout: "vertical", color: "blue" }}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    purchase_units: [{ amount: { value: serviceFee.toFixed(2) } }],
-                  });
-                }}
-                onApprove={(data, actions) => {
-                  return actions.order.capture().then((details) => handlePaymentSuccess(details));
-                }}
-                onError={(err) => {
-                  console.error("Payment error:", err);
-                  Toast("error", "Payment failed. Try again.");
-                }}
+              <h3 className="text-xl font-semibold text-gray-800">Payment Breakdown</h3>
+              <div className="space-y-2 mt-2">
+                <div className="flex justify-between"><span>Service Price:</span><span>${serviceFee.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span>Platform Fee (Paid Now):</span><span>${platformFee.toFixed(2)}</span></div>
+                <div className="flex justify-between text-lg font-bold text-gray-900"><span>Total Price:</span><span>${totalPrice.toFixed(2)}</span></div>
+                <div className="flex justify-between text-lg font-bold text-red-600"><span>Remaining Balance (Pay Later):</span><span>${remainingBalance.toFixed(2)}</span></div>
+              </div>
+
+              <hr className="my-4 border-gray-300" />
+
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Pay Now (Platform Fee Only)</h3>
+              <PayPalButtons 
+                style={{ layout: "vertical", color: "blue" }} 
+                createOrder={(data, actions) => actions.order.create({ purchase_units: [{ amount: { value: platformFee.toFixed(2) } }] })} 
+                onApprove={(data, actions) => actions.order.capture().then((details) => handlePaymentSuccess(details))} 
+                onError={() => Toast("error", "Payment failed. Try again.")}
               />
-              <button
-                className="w-full mt-4 py-2 border rounded-md text-center text-gray-700 hover:bg-gray-200"
-                onClick={() => navigate(-1)}
-              >
-                Cancel and Go Back
-              </button>
+
+              <button className="w-full mt-4 py-2 border border-gray-300 rounded-lg text-center text-gray-700 hover:bg-gray-200 transition duration-200" onClick={() => navigate(-1)}>Cancel and Go Back</button>
             </div>
           </div>
         </div>

@@ -23,7 +23,7 @@ const UserBookingsPage = () => {
           "http://localhost:8000/api/user/bookings/",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        
+
         setBookings(response.data);
       } catch (error) {
         console.error("Failed to fetch bookings.", error);
@@ -36,7 +36,7 @@ const UserBookingsPage = () => {
   const cancelBooking = async (bookingId) => {
     try {
       const token = localStorage.getItem("userAccessToken");
-  
+
       const response = await axios.patch(
         `http://localhost:8000/api/bookings/cancel/${bookingId}/`,
         {},
@@ -47,16 +47,17 @@ const UserBookingsPage = () => {
           },
         }
       );
-  
+
       Toast("success", response.data.message);
-  
-      // Update UI with the new status
-      setBookings(
-        bookings.map((booking) =>
-          booking.id === bookingId ? { ...booking, status: response.data.status } : booking
+
+      // ✅ Update UI dynamically with new status
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "cancelled" } // Update status dynamically
+            : booking
         )
       );
-  
     } catch (error) {
       console.error("Failed to cancel booking", error.response?.data || error.message);
       Toast("error", error.response?.data?.error || "Failed to cancel booking.");
@@ -78,11 +79,13 @@ const UserBookingsPage = () => {
               {bookings.map((booking) => {
                 const startTime = new Date(booking.start_time).toLocaleString();
                 const endTime = new Date(booking.end_time).toLocaleString();
+                const statusLower = booking.status.toLowerCase();
 
                 return (
                   <li
                     key={booking.id}
-                    className="bg-gray-100 p-4 rounded-lg shadow-md"
+                    className="bg-gray-100 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition duration-200"
+                    onClick={() => navigate(`/booking/${booking.id}`)} // ✅ Clickable entire box
                   >
                     <h3 className="text-lg font-semibold text-gray-800">
                       {booking.service_name} with {booking.worker_name}
@@ -94,10 +97,14 @@ const UserBookingsPage = () => {
                       <strong>Status:</strong>{" "}
                       <span
                         className={
-                          booking.status === "Confirmed"
+                          statusLower === "confirmed"
                             ? "text-green-500"
-                            : booking.status === "Cancelled"
+                            : statusLower === "cancelled"
                             ? "text-red-500"
+                            : statusLower === "workdone"
+                            ? "text-blue-500"
+                            : statusLower === "completed"
+                            ? "text-gray-500"
                             : "text-yellow-500"
                         }
                       >
@@ -105,10 +112,13 @@ const UserBookingsPage = () => {
                       </span>
                     </p>
 
-                    {/* Only show Cancel button if the status is 'Confirmed' */}
-                    {booking.status === "Confirmed" && (
+                    {/* ✅ Hide Cancel button for workdone, completed, or cancelled bookings */}
+                    {!["completed", "cancelled", "workdone"].includes(statusLower) && (
                       <button
-                        onClick={() => cancelBooking(booking.id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // ✅ Prevent navigation when clicking cancel button
+                          cancelBooking(booking.id);
+                        }}
                         className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-700"
                       >
                         Cancel Booking
