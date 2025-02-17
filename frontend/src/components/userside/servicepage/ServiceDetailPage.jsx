@@ -1,47 +1,50 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import axios from "axios"
-import Navbar from "../Navbar"
-import Toast from "../../../utils/Toast"
-import Footer from "../Footer"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import Navbar from "../Navbar";
+import Toast from "../../../utils/Toast";
+import Footer from "../Footer";
+import { motion } from "framer-motion";
+import ServiceReviews from "../reviewrating/ServiceReviews"; // Import the reviews component
+
+const BASE_URL = "http://localhost:8000";
 
 const ServiceDetailPage = () => {
-  const { serviceId } = useParams()
-  const [service, setService] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
+  const { serviceId } = useParams();
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchService = async () => {
-      const token = localStorage.getItem("userAccessToken")
+      const token = localStorage.getItem("userAccessToken");
 
       if (!token) {
-        Toast("error", "You need to be logged in to view service details.")
-        navigate("/login")
-        return
+        Toast("error", "You need to be logged in to view service details.");
+        navigate("/login");
+        return;
       }
 
       try {
-        const response = await axios.get(`http://localhost:8000/api/services/${serviceId}/`, {
+        const response = await axios.get(`${BASE_URL}/api/services/${serviceId}/`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
-        setService(response.data)
+        });
+        setService(response.data);
       } catch (error) {
-        console.error("Failed to load service details.", error)
-        Toast("error", "Failed to load service details. Please try again.")
+        console.error("Failed to load service details.", error);
+        Toast("error", "Failed to load service details. Please try again.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchService()
-  }, [serviceId, navigate])
+    fetchService();
+  }, [serviceId, navigate]);
 
-  if (loading) return <LoadingSpinner />
-  if (!service) return <ServiceNotFound />
+  if (loading) return <LoadingSpinner />;
+  if (!service) return <ServiceNotFound />;
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
@@ -56,7 +59,7 @@ const ServiceDetailPage = () => {
           {service.image && (
             <div className="relative h-80 overflow-hidden">
               <img
-                src={`http://localhost:8000${service.image}`}
+                src={`${BASE_URL}${service.image}`}
                 alt={service.name}
                 className="w-full h-full object-cover"
               />
@@ -68,7 +71,9 @@ const ServiceDetailPage = () => {
           <div className="p-8">
             <p className="text-xl text-gray-700 mb-8 leading-relaxed">{service.description}</p>
             <div className="flex items-center justify-between mb-8">
-              <p className="text-3xl font-semibold text-indigo-600">${service.price}</p>
+              <p className="text-2xl font-bold text-indigo-700">
+                Hourly Charge: <span className="text-3xl text-indigo-600">${service.hourly_rate}</span>/hr
+              </p>
               <div className="text-gray-500">
                 <span>Available Workers</span>
               </div>
@@ -92,25 +97,27 @@ const ServiceDetailPage = () => {
                 View Workers
               </motion.button>
             </div>
+
+            {/* Display Service Reviews Below Service Details */}
+            <ServiceReviews />
           </div>
         </motion.div>
       </main>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
     <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
   </div>
-)
+);
 
 const ServiceNotFound = () => (
   <div className="flex justify-center items-center h-screen">
     <p className="text-2xl text-gray-700 font-semibold">Service not found.</p>
   </div>
-)
+);
 
-export default ServiceDetailPage
-
+export default ServiceDetailPage;

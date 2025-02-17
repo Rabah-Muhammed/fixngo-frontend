@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js"; 
 
 // User-side components
 import SignupPage from "./components/userside/userauth/SignupPage";
@@ -18,8 +19,9 @@ import WorkersPage from "./components/userside/servicepage/WorkersPage";
 import WorkerSlotPage from "./components/userside/servicepage/WorkerSlotPage";
 import UserBookingsPage from "./components/userside/bookings/UserBookingsPage";
 import BookingDetailPage from "./components/userside/bookings/BookingDetailPage";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js"; 
 import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
+import ReviewPage from "./components/userside/reviewrating/ReviewPage";
+
 
 
 // Worker-side components
@@ -47,7 +49,6 @@ import BookingsList from "./components/adminside/adminauth/BookingsList";
 
 
 
-
 // Private Route component
 const PrivateRoute = ({ children }) => {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
@@ -55,7 +56,7 @@ const PrivateRoute = ({ children }) => {
 };
 
 const App = () => {
-  const clientId = "500698877294-jam712pdk43id3s0v5mg9k1ol2jjdl6a.apps.googleusercontent.com"
+  const clientId = "500698877294-jam712pdk43id3s0v5mg9k1ol2jjdl6a.apps.googleusercontent.com" //google sso client id
   return (
     <PayPalScriptProvider options={{ "client-id": "Abbw-mOUb25GBacq0mna6jVOAGdre9n4QdtYDgx-AXrg7VdoBVM3Jom2adaSJiFQWdnSgeFJZES8da3H" }}>
     <Router>
@@ -76,6 +77,7 @@ const App = () => {
         <Route path="/bookings" element={<PrivateRoute><UserBookingsPage /></PrivateRoute>} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/booking/:bookingId" element={<BookingDetailPage />} />
+        <Route path="/review/:bookingId" element={<ReviewPage />} /> 
 
 
 

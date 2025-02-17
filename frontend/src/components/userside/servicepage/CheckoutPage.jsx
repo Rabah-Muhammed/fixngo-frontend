@@ -14,15 +14,19 @@ const BASE_URL = "http://localhost:8000";
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { workerId, slot, serviceId } = location.state || {};
+  const { workerId, slot, serviceId, bookingId } = location.state || {};
 
   const [service, setService] = useState(null);
   const [worker, setWorker] = useState(null);
   const [platformFee, setPlatformFee] = useState(0);
+  const [remainingBalance, setRemainingBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const isRemainingPayment = Boolean(bookingId); // Check if it's a remaining payment
 
   useEffect(() => {
-    if (!workerId || !slot || !serviceId) {
+    console.log("Checkout Page State:", location.state); // Debugging log
+
+    if (!workerId || !serviceId || !slot) {
       Toast("error", "Invalid checkout session. Please try again.");
       navigate("/");
       return;
@@ -37,7 +41,7 @@ const CheckoutPage = () => {
       }
 
       try {
-        const [serviceRes, workerRes, platformFeeRes] = await Promise.all([
+        const [serviceRes, workerRes, platformFeeRes, bookingRes] = await Promise.all([
           axios.get(`${BASE_URL}/api/services/${serviceId}/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -47,11 +51,30 @@ const CheckoutPage = () => {
           axios.get(`${BASE_URL}/api/platform-fee/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          isRemainingPayment
+            ? axios.get(`${BASE_URL}/api/bookings/${bookingId}/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+            : null,
         ]);
 
-        setService(serviceRes.data);
+        const serviceData = serviceRes.data;
+        setService(serviceData);
         setWorker(workerRes.data);
-        setPlatformFee(platformFeeRes.data.platform_fee);
+        setPlatformFee(Number(platformFeeRes.data.platform_fee));
+
+        if (isRemainingPayment && bookingRes) {
+          // ✅ Fetch the actual remaining balance from the backend
+          const bookingData = bookingRes.data;
+          setRemainingBalance(bookingData.remaining_balance);
+        } else {
+          // ✅ Calculate slot duration and the remaining balance if it's an initial payment
+          const startTime = new Date(slot.start_time);
+          const endTime = new Date(slot.end_time);
+          const durationInHours = (endTime - startTime) / (1000 * 60 * 60); // Convert ms to hours
+          const remainingAmount = Number(serviceData.hourly_rate) * durationInHours;
+          setRemainingBalance(remainingAmount.toFixed(2)); // Format to 2 decimal places
+        }
       } catch (error) {
         Toast("error", "Failed to load details.");
         navigate("/");
@@ -61,32 +84,43 @@ const CheckoutPage = () => {
     };
 
     fetchDetails();
-  }, [workerId, slot, serviceId, navigate]);
+  }, [workerId, slot, serviceId, bookingId, navigate, isRemainingPayment]);
 
   const handlePaymentSuccess = async (details) => {
     const token = localStorage.getItem("userAccessToken");
     if (!token) {
-      Toast("error", "You need to be logged in to book a service.");
+      Toast("error", "You need to be logged in to proceed.");
       navigate("/login");
       return;
     }
 
-    const bookingData = {
-      worker: workerId,
-      slot: slot.id,
-      service: serviceId,
-      transaction_id: details.id,
-    };
-
     try {
-      await axios.post(`${BASE_URL}/api/bookings/`, bookingData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
+      if (isRemainingPayment) {
+        // Pay remaining balance
+        await axios.patch(`${BASE_URL}/api/bookings/${bookingId}/pay-remaining/`, {}, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        });
 
-      Toast("success", "Booking confirmed! You will need to pay the remaining balance to the worker later.");
+        Toast("success", "Remaining balance paid successfully! Booking is now completed.");
+      } else {
+        // Initial platform fee payment
+        const bookingData = {
+          worker: workerId,
+          slot: slot.id,
+          service: serviceId,
+          transaction_id: details.id,
+        };
+
+        await axios.post(`${BASE_URL}/api/bookings/`, bookingData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        });
+
+        Toast("success", "Booking confirmed! You will need to pay the remaining balance to the worker later.");
+      }
+
       setTimeout(() => navigate("/bookings"), 1500);
     } catch (error) {
-      Toast("error", "Failed to book slot. Try again.");
+      Toast("error", "Payment failed. Try again.");
     }
   };
 
@@ -101,9 +135,6 @@ const CheckoutPage = () => {
     );
   }
 
-  const serviceFee = Number(service?.price) || 0;
-  const totalPrice = serviceFee + platformFee;
-  const remainingBalance = serviceFee;
   const serviceImage = service?.image ? `${BASE_URL}${service.image}` : "/default-service.png";
   const workerName = worker?.username || "Unknown Worker";
 
@@ -112,7 +143,9 @@ const CheckoutPage = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8">
-          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">Confirm Your Booking</h1>
+          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
+            {isRemainingPayment ? "Pay Remaining Balance" : "Confirm Your Booking"}
+          </h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="flex justify-center">
@@ -127,12 +160,12 @@ const CheckoutPage = () => {
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium text-gray-600">Date:</span>
-                  <span className="font-semibold">{format(new Date(slot.start_time), "MMM dd, yyyy")}</span>
+                  <span className="font-semibold">{slot ? format(new Date(slot.start_time), "MMM dd, yyyy") : "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium text-gray-600">Time:</span>
                   <span className="font-semibold">
-                    {format(new Date(slot.start_time), "hh:mm a")} - {format(new Date(slot.end_time), "hh:mm a")}
+                    {slot ? `${format(new Date(slot.start_time), "hh:mm a")} - ${format(new Date(slot.end_time), "hh:mm a")}` : "N/A"}
                   </span>
                 </div>
               </div>
@@ -141,23 +174,23 @@ const CheckoutPage = () => {
 
               <h3 className="text-xl font-semibold text-gray-800">Payment Breakdown</h3>
               <div className="space-y-2 mt-2">
-                <div className="flex justify-between"><span>Service Price:</span><span>${serviceFee.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>Platform Fee (Paid Now):</span><span>${platformFee.toFixed(2)}</span></div>
-                <div className="flex justify-between text-lg font-bold text-gray-900"><span>Total Price:</span><span>${totalPrice.toFixed(2)}</span></div>
-                <div className="flex justify-between text-lg font-bold text-red-600"><span>Remaining Balance (Pay Later):</span><span>${remainingBalance.toFixed(2)}</span></div>
+                {!isRemainingPayment && <div className="flex justify-between"><span>Platform Fee (Paid Now):</span><span>${platformFee.toFixed(2)}</span></div>}
+                <div className="flex justify-between text-lg font-bold text-red-600">
+                  <span>Remaining Balance:</span>
+                  <span>${remainingBalance}</span>
+                </div>
               </div>
 
               <hr className="my-4 border-gray-300" />
 
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Pay Now (Platform Fee Only)</h3>
               <PayPalButtons 
                 style={{ layout: "vertical", color: "blue" }} 
-                createOrder={(data, actions) => actions.order.create({ purchase_units: [{ amount: { value: platformFee.toFixed(2) } }] })} 
+                createOrder={(data, actions) => actions.order.create({ 
+                  purchase_units: [{ amount: { value: isRemainingPayment ? remainingBalance : platformFee.toFixed(2) } }]
+                })} 
                 onApprove={(data, actions) => actions.order.capture().then((details) => handlePaymentSuccess(details))} 
                 onError={() => Toast("error", "Payment failed. Try again.")}
               />
-
-              <button className="w-full mt-4 py-2 border border-gray-300 rounded-lg text-center text-gray-700 hover:bg-gray-200 transition duration-200" onClick={() => navigate(-1)}>Cancel and Go Back</button>
             </div>
           </div>
         </div>
