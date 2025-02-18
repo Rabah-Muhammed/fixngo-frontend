@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MdDashboard, MdPeople, MdWork, MdBook } from "react-icons/md"; // Added MdBook icon for bookings
+import { MdDashboard, MdPeople, MdWork, MdBook, MdRateReview } from "react-icons/md"; // Added MdRateReview icon for reviews
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -76,8 +76,21 @@ const AdminSidebar = () => {
                   : "hover:bg-indigo-500 hover:text-white"
               }`}
             >
-              <MdBook className="text-xl" /> {/* Added icon for bookings */}
+              <MdBook className="text-xl" />
               Bookings
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/reviews" // Link to the Reviews page
+              className={`flex items-center gap-3 p-2 rounded-lg text-sm ${
+                isActive("/admin/reviews")
+                  ? "bg-indigo-600 text-white"
+                  : "hover:bg-indigo-500 hover:text-white"
+              }`}
+            >
+              <MdRateReview className="text-xl" /> {/* Icon for Reviews */}
+              Reviews
             </Link>
           </li>
         </ul>

@@ -27,27 +27,50 @@ const ServiceReviews = () => {
     fetchReviews();
   }, [serviceId]);
 
-  if (loading) return <p className="text-center text-gray-500">Loading reviews...</p>;
+  if (loading)
+    return <p className="text-center text-gray-500 animate-pulse mt-4">Loading reviews...</p>;
 
   return (
-    <div className="mt-12 bg-white shadow-lg rounded-lg p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Customer Reviews</h2>
+    <div className="mt-12 bg-white shadow-lg rounded-lg p-6 md:p-8">
+      <h2 className="text-3xl font-bold text-indigo-700 mb-6 text-center">Customer Reviews</h2>
+
       {reviews.length === 0 ? (
-        <p className="text-gray-500">No reviews yet for this service.</p>
+        <p className="text-gray-500 text-center text-lg">No reviews yet for this service.</p>
       ) : (
         <div className="space-y-6">
           {reviews.map((review) => (
-            <div key={review.id} className="border-b pb-4">
-              <p className="text-gray-700 font-semibold">
-                {review.user_name || review.user_email} {/* Show name or email */}
-              </p>
-              <div className="flex items-center">
+            <div
+              key={review.id}
+              className="bg-gray-100 p-5 rounded-lg shadow-md transition duration-300 hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-lg font-semibold text-gray-800">
+                  {review.user_name || review.user_email}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  {new Date(review.created_at).toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* Display Worker Name */}
+              {review.worker_name && (
+                <p className="text-gray-600 mt-2 italic">
+                  Review for worker: {review.worker_name}
+                </p>
+              )}
+
+              <div className="flex items-center mt-2">
                 {[...Array(5)].map((_, index) => (
-                  <FaStar key={index} className={`h-5 w-5 ${index < review.rating ? "text-yellow-500" : "text-gray-300"}`} />
+                  <FaStar
+                    key={index}
+                    className={`h-5 w-5 transition duration-300 ${
+                      index < review.rating ? "text-yellow-500" : "text-gray-300"
+                    }`}
+                  />
                 ))}
               </div>
-              <p className="text-gray-600 mt-2">{review.review || "No comment provided."}</p>
-              <p className="text-gray-400 text-sm">{new Date(review.created_at).toLocaleDateString()}</p>
+
+              <p className="text-gray-600 mt-3 italic">{review.review || "No comment provided."}</p>
             </div>
           ))}
         </div>

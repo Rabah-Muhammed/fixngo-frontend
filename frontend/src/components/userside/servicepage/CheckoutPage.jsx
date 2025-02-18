@@ -93,14 +93,17 @@ const CheckoutPage = () => {
       navigate("/login");
       return;
     }
-
+  
     try {
+      let paymentType = "Platform Fee"; // Default payment type
+  
       if (isRemainingPayment) {
         // Pay remaining balance
         await axios.patch(`${BASE_URL}/api/bookings/${bookingId}/pay-remaining/`, {}, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
-
+  
+        paymentType = "Remaining Balance"; // Payment type is remaining balance
         Toast("success", "Remaining balance paid successfully! Booking is now completed.");
       } else {
         // Initial platform fee payment
@@ -110,19 +113,21 @@ const CheckoutPage = () => {
           service: serviceId,
           transaction_id: details.id,
         };
-
+  
         await axios.post(`${BASE_URL}/api/bookings/`, bookingData, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
-
+  
         Toast("success", "Booking confirmed! You will need to pay the remaining balance to the worker later.");
       }
-
-      setTimeout(() => navigate("/bookings"), 1500);
+  
+      // Pass the payment type to the SuccessPage via state
+      setTimeout(() => navigate("/success", { state: { paymentType } }), 1500);
     } catch (error) {
       Toast("error", "Payment failed. Try again.");
     }
   };
+  
 
   if (loading) {
     return (

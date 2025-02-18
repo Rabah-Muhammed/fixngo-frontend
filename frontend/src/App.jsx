@@ -17,11 +17,12 @@ import ServicesPage from "./components/userside/servicepage/ServicesPage";
 import ServiceDetailPage from "./components/userside/servicepage/ServiceDetailPage";
 import WorkersPage from "./components/userside/servicepage/WorkersPage";
 import WorkerSlotPage from "./components/userside/servicepage/WorkerSlotPage";
+import WorkerReviewsPage from "./components/userside/reviewrating/WorkerReviewsPage";
 import UserBookingsPage from "./components/userside/bookings/UserBookingsPage";
 import BookingDetailPage from "./components/userside/bookings/BookingDetailPage";
 import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
 import ReviewPage from "./components/userside/reviewrating/ReviewPage";
-
+import SuccessPage from "./components/userside/servicepage/SuccessPage";
 
 
 // Worker-side components
@@ -33,7 +34,7 @@ import SlotManagement from "./components/workerside/slotsmanage/SlotManagement";
 import ServiceSelection from "./components/workerside/servicemanage/ServiceSelection";
 import WorkerBookings from "./components/workerside/bookingmanage/WorkerBookings";
 import WorkerManageBookings from "./components/workerside/bookingmanage/WorkerManageBookings";
-
+import WorkerReviews from "./components/workerside/reviewsandrate/WorkerReviews";
 
 
 
@@ -45,6 +46,8 @@ import WorkersList from "./components/adminside/adminauth/WorkersList";
 import AdminLayout from "./components/adminside/adminauth/AdminLayout"; // Import Admin Layout
 import AdminCreateService from "./components/adminside/adminauth/AdminCreateService";
 import BookingsList from "./components/adminside/adminauth/BookingsList";
+import AdminReviews from "./components/adminside/adminauth/AdminReviews";
+
 
 
 
@@ -73,9 +76,11 @@ const App = () => {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
         <Route path="/worker/:workerId/slots" element={<WorkerSlotPage />} /> {/* Correctly map this route */}
+        <Route path="/worker/:workerId/reviews" element={<WorkerReviewsPage />} />
         <Route path="/services/:serviceId/workers" element={<WorkersPage />} /> {/* Workers page with serviceId */}
         <Route path="/bookings" element={<PrivateRoute><UserBookingsPage /></PrivateRoute>} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/success" element={<SuccessPage />} />
         <Route path="/booking/:bookingId" element={<BookingDetailPage />} />
         <Route path="/review/:bookingId" element={<ReviewPage />} /> 
 
@@ -90,7 +95,7 @@ const App = () => {
         <Route path="/worker/slot-management" element={<SlotManagement />} />
         <Route path="/worker/bookings" element={<WorkerBookings />} /> 
         <Route path="/worker/manage-bookings" element={<WorkerManageBookings />} />
-        
+        <Route path="/worker/reviews" element={<WorkerReviews />} />
 
 
         {/* Admin routes */}
@@ -101,6 +106,7 @@ const App = () => {
         <Route path="/admin/workers" element={<WorkersList />} />
         <Route path="/admin/services/create" element={<AdminCreateService />} />
         <Route path="/admin/bookings" element={<BookingsList />} /> 
+        <Route path="/admin/reviews" element={<AdminReviews />} />
         
       </Routes>
       </GoogleOAuthProvider>

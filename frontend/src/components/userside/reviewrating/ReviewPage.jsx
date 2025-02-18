@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import ReactStars from "react-stars";
 import Toast from "../../../utils/Toast";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -32,7 +33,7 @@ const ReviewPage = () => {
         if (response.status === 200) {
           setExistingReview(response.data);
           setRating(response.data.rating);
-          setReviewText(response.data.review || ""); // ✅ Load existing review text properly
+          setReviewText(response.data.review || "");
         }
       } catch (error) {
         console.log("No existing review found.");
@@ -45,6 +46,11 @@ const ReviewPage = () => {
   }, [bookingId, navigate]);
 
   const submitReview = async () => {
+    if (rating === 0) {
+      Toast("error", "Please select a rating before submitting.");
+      return;
+    }
+
     const token = localStorage.getItem("userAccessToken");
     if (!token) {
       Toast("error", "You need to log in to submit a review.");
@@ -57,7 +63,7 @@ const ReviewPage = () => {
       const reviewData = {
         booking_id: bookingId,
         rating,
-        review: reviewText, // ✅ Use "review" instead of "review_text"
+        review: reviewText,
       };
 
       if (existingReview) {
@@ -75,7 +81,9 @@ const ReviewPage = () => {
       navigate("/bookings");
     } catch (error) {
       console.error("Failed to submit review", error.response?.data || error.message);
-      Toast("error", error.response?.data?.error || "Failed to submit review.");
+      const errorMessage =
+        error.response?.data?.error || error.response?.data?.message || "Failed to submit review.";
+      Toast("error", errorMessage);
     }
   };
 
@@ -92,19 +100,17 @@ const ReviewPage = () => {
             <p className="text-center text-gray-500">Loading...</p>
           ) : (
             <>
-              <label className="block text-gray-700 font-semibold mb-2">Rating (1-5):</label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              >
-                <option value={0}>Select a rating</option>
-                <option value={1}>⭐ (1)</option>
-                <option value={2}>⭐⭐ (2)</option>
-                <option value={3}>⭐⭐⭐ (3)</option>
-                <option value={4}>⭐⭐⭐⭐ (4)</option>
-                <option value={5}>⭐⭐⭐⭐⭐ (5)</option>
-              </select>
+              <label className="block text-gray-700 font-semibold mb-2">Your Rating:</label>
+              <div className="flex justify-center mb-4">
+                <ReactStars
+                  count={5}
+                  value={rating}
+                  onChange={(newRating) => setRating(newRating)}
+                  size={40}
+                  color2={"#ffd700"} // Gold color for selected stars
+                  half={false} // Disables half-stars
+                />
+              </div>
 
               <label className="block text-gray-700 font-semibold mb-2">Your Review:</label>
               <textarea
@@ -117,7 +123,10 @@ const ReviewPage = () => {
 
               <button
                 onClick={submitReview}
-                className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-green-700 w-full"
+                disabled={loading}
+                className={`bg-green-500 text-white px-4 py-2 rounded-md shadow-md w-full ${
+                  loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
+                }`}
               >
                 {existingReview ? "Update Review" : "Submit Review"}
               </button>

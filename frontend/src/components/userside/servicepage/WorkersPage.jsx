@@ -76,7 +76,7 @@ const WorkersPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {workers.map((worker, index) => (
                 <WorkerCard key={worker.id} worker={worker} index={index} navigate={navigate} serviceId={serviceId} />
@@ -94,7 +94,7 @@ const WorkersPage = () => {
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div>
   </div>
 );
 
@@ -126,14 +126,14 @@ const WorkerCard = ({ worker, index, navigate, serviceId }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.1 }}
-    className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center hover:shadow-xl transition-shadow duration-300"
+    className="bg-white rounded-lg shadow-lg p-4 flex flex-col items-center hover:shadow-xl transition-shadow duration-300 w-full max-w-xs"
   >
     <img
       src={worker.profile_picture ? `http://localhost:8000${worker.profile_picture}` : "/default-avatar.png"}
       alt={worker.username}
-      className="w-32 h-32 rounded-full object-cover border-4 border-indigo-400 mb-4"
+      className="w-20 h-20 rounded-full object-cover border-4 border-indigo-400 mb-4"
     />
-    <h3 className="text-xl font-semibold text-gray-800 mb-2">{worker.username}</h3>
+    <h3 className="text-lg font-semibold text-gray-800 mb-2">{worker.username}</h3>
     <div className="flex items-center space-x-2 mb-4">
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
         <path
@@ -144,12 +144,21 @@ const WorkerCard = ({ worker, index, navigate, serviceId }) => (
       </svg>
       <p className="text-sm text-gray-600">{worker.service_area || "Not specified"}</p>
     </div>
-    <button
-      onClick={() => navigate(`/worker/${worker.id}/slots`, { state: { serviceId } })}
-      className="px-6 py-2 rounded-full text-sm font-medium transition bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-    >
-      View Slots
-    </button>
+    <div className="space-y-2 w-full">
+      <button
+        onClick={() => navigate(`/worker/${worker.id}/slots`, { state: { serviceId } })}
+        className="px-4 py-2 w-full rounded-full text-sm font-medium transition bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        View Slots
+      </button>
+      {/* New button to view reviews */}
+      <button
+        onClick={() => navigate(`/worker/${worker.id}/reviews`)} // Navigate to reviews page for the worker
+        className="px-4 py-2 w-full rounded-full text-sm font-medium transition bg-gray-500 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+      >
+        View Reviews
+      </button>
+    </div>
   </motion.div>
 );
 

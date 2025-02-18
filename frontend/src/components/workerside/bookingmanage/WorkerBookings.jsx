@@ -19,18 +19,24 @@ const WorkerBookings = () => {
 
   const handleBookingAction = (bookingId, action) => {
     axios
-      .patch(`http://localhost:8000/api/worker/bookings/${bookingId}/`, { status: action }, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .patch(
+        `http://localhost:8000/api/worker/bookings/${bookingId}/`,
+        { status: action },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       .then((response) => {
         Toast("success", "Booking updated successfully!");
         setBookings(
           bookings.map((booking) =>
-            booking.id === bookingId ? { ...booking, status: response.data.status } : booking
+            booking.id === bookingId
+              ? { ...booking, status: response.data.status }
+              : booking
           )
         );
       })
-      .catch((error) => Toast("error", "Failed to update booking."));
+      .catch(() => Toast("error", "Failed to update booking."));
   };
 
   return (
@@ -40,9 +46,8 @@ const WorkerBookings = () => {
         <div className="text-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg p-4 shadow-md">
           <h1 className="text-2xl font-semibold flex items-center justify-center gap-2">
             <FaClipboardList className="text-xl" />
-             Booking Requests
+            Booking Requests
           </h1>
-          
         </div>
 
         {/* Booking List */}
@@ -51,10 +56,30 @@ const WorkerBookings = () => {
         ) : (
           <div className="mt-6 space-y-4">
             {bookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-5 rounded-lg shadow-md border">
-                <h2 className="text-lg font-semibold text-gray-800">Service: {booking.service_name}</h2>
-                <p className="text-gray-600"><strong>Customer:</strong> {booking.user_name}</p>
-                <p className="text-gray-600"><strong>Time Slot:</strong> {booking.slot_time}</p>
+              <div
+                key={booking.id}
+                className="bg-white p-5 rounded-lg shadow-md border"
+              >
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Service: {booking.service_name}
+                </h2>
+                <p className="text-gray-600">
+                  <strong>Customer:</strong> {booking.user_name}
+                </p>
+
+                {/* Updated Time Slot Display */}
+                <p className="text-gray-600">
+                  <strong>Time Slot:</strong>{" "}
+                  {booking.start_time && booking.end_time ? (
+                    <span>
+                      {booking.start_time} - {booking.end_time}
+                    </span>
+                  ) : (
+                    <span className="text-red-500">Not Assigned</span>
+                  )}
+                </p>
+
+                {/* Status */}
                 <p
                   className={`font-semibold mt-2 ${
                     booking.status === "pending"

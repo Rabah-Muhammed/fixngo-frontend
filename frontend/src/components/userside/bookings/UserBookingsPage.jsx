@@ -81,16 +81,16 @@ const UserBookingsPage = () => {
   };
 
   return (
-    <div>
+    <div className="bg-gradient-to-t from-indigo-50 to-indigo-100">
       <Navbar />
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center pt-20 pb-16">
-        <div className="bg-white shadow-lg rounded-lg w-full max-w-4xl p-8">
-          <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">Your Bookings</h2>
+      <div className="min-h-screen flex justify-center items-center py-16">
+        <div className="w-full max-w-4xl bg-white rounded-xl shadow-xl p-8">
+          <h2 className="text-3xl font-bold text-center text-indigo-600 mb-8">Your Bookings</h2>
 
           {bookings.length === 0 ? (
             <p className="text-center text-gray-500">No bookings found.</p>
           ) : (
-            <ul className="space-y-4">
+            <ul className="space-y-6">
               {bookings.map((booking) => {
                 const startTime = new Date(booking.start_time).toLocaleString();
                 const endTime = new Date(booking.end_time).toLocaleString();
@@ -99,33 +99,35 @@ const UserBookingsPage = () => {
                 return (
                   <li
                     key={booking.id}
-                    className="bg-gray-100 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition duration-200"
+                    className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-xl transition duration-300 cursor-pointer transform hover:scale-105"
                     onClick={() => navigate(`/booking/${booking.id}`)}
                   >
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {booking.service_name} with {booking.worker_name}
-                    </h3>
-                    <p className="text-gray-600">
-                      <strong>Slot:</strong> {startTime} - {endTime}
-                    </p>
-                    <p className="text-gray-600">
-                      <strong>Status:</strong>{" "}
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        {booking.service_name} with {booking.worker_name}
+                      </h3>
                       <span
-                        className={
+                        className={`px-4 py-2 text-sm font-semibold rounded-full ${
                           statusLower === "confirmed"
-                            ? "text-green-500"
+                            ? "bg-green-100 text-green-500"
                             : statusLower === "cancelled"
-                            ? "text-red-500"
+                            ? "bg-red-100 text-red-500"
                             : statusLower === "workdone"
-                            ? "text-blue-500"
+                            ? "bg-blue-100 text-blue-500"
                             : statusLower === "completed"
-                            ? "text-gray-500"
-                            : "text-yellow-500"
-                        }
+                            ? "bg-gray-200 text-gray-500"
+                            : "bg-yellow-100 text-yellow-500"
+                        }`}
                       >
                         {booking.status}
                       </span>
-                    </p>
+                    </div>
+
+                    <div className="mt-4 text-gray-600">
+                      <p>
+                        <strong>Slot:</strong> {startTime} - {endTime}
+                      </p>
+                    </div>
 
                     {/* ✅ Hide Cancel button for workdone, completed, or cancelled bookings */}
                     {!["completed", "cancelled", "workdone"].includes(statusLower) && (
@@ -134,7 +136,7 @@ const UserBookingsPage = () => {
                           e.stopPropagation();
                           cancelBooking(booking.id);
                         }}
-                        className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-700"
+                        className="mt-4 w-full sm:w-auto bg-red-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-red-700 transition-colors"
                       >
                         Cancel Booking
                       </button>
@@ -158,7 +160,7 @@ const UserBookingsPage = () => {
                             },
                           });
                         }}
-                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-700"
+                        className="mt-4 w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transition-colors"
                       >
                         Pay Remaining Balance (${booking.remaining_balance})
                       </button>
@@ -171,9 +173,11 @@ const UserBookingsPage = () => {
                           e.stopPropagation();
                           navigate(`/review/${booking.id}`);
                         }}
-                        className={`mt-4 ${
-                          booking.review ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-500 hover:bg-green-700"
-                        } text-white px-4 py-2 rounded-md shadow-md`}
+                        className={`mt-4 w-full sm:w-auto ${
+                          booking.review
+                            ? "bg-yellow-600 hover:bg-yellow-700"
+                            : "bg-green-600 hover:bg-green-700"
+                        } text-white px-6 py-3 rounded-md shadow-md transition-colors`}
                       >
                         {booking.review ? "Edit Review" : "Write a Review"}
                       </button>

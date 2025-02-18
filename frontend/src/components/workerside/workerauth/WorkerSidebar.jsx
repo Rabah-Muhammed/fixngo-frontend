@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { MdDashboard, MdPerson } from "react-icons/md";
 import { FaTools, FaClipboardList, FaClipboardCheck } from "react-icons/fa";
 import { RiCalendarCheckLine } from "react-icons/ri";
+import { FaStar } from "react-icons/fa"; // For the Reviews section
 
 const WorkerSidebar = () => {
   const location = useLocation();
@@ -80,19 +81,33 @@ const WorkerSidebar = () => {
           </Link>
         </li>
         <li>
-        <Link
-          to="/worker/manage-bookings"
-          className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
-            isActive("/worker/manage-bookings")
-              ? "bg-indigo-600 shadow-md"
-              : "hover:bg-indigo-500 hover:shadow-lg"
-          }`}
-        >
-          <FaClipboardCheck className="text-lg" />
-          <span>Manage Bookings</span>
-        </Link>
-      </li>
+          <Link
+            to="/worker/manage-bookings"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/manage-bookings")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <FaClipboardCheck className="text-lg" />
+            <span>Manage Bookings</span>
+          </Link>
+        </li>
 
+        {/* New Reviews Link */}
+        <li>
+          <Link
+            to="/worker/reviews"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/reviews")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <FaStar className="text-lg" />
+            <span>Reviews</span>
+          </Link>
+        </li>
       </ul>
 
       {/* Footer */}

@@ -107,17 +107,20 @@ const BookingsList = () => {
                   </td>
                   <td className="px-6 py-4">{booking.created_at}</td>
                   <td className="px-6 py-4">
-                    {booking.status === "cancelled" ? (
-                      <span className="text-red-500">Cancelled</span>
-                    ) : (
-                      <button
-                        className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
-                        onClick={() => handleCancel(booking.id)}
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
+                  {booking.status === "cancelled" ? (
+                    <span className="text-red-500">Cancelled</span>
+                  ) : booking.status === "pending" ? (
+                    <button
+                      className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
+                      onClick={() => handleCancel(booking.id)}
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <span className="text-gray-500">Not cancellable</span> // For non-pending bookings
+                  )}
+                </td>
+
                 </tr>
               ))}
             </tbody>
