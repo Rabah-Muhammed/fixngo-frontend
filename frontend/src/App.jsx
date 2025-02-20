@@ -23,6 +23,9 @@ import BookingDetailPage from "./components/userside/bookings/BookingDetailPage"
 import CheckoutPage from "./components/userside/servicepage/CheckoutPage";
 import ReviewPage from "./components/userside/reviewrating/ReviewPage";
 import SuccessPage from "./components/userside/servicepage/SuccessPage";
+import VisitWorker from "./components/userside/servicepage/VisitWorker";
+import VideoCall from "./components/chatroom/VideoCall";
+
 
 
 // Worker-side components
@@ -47,6 +50,7 @@ import AdminLayout from "./components/adminside/adminauth/AdminLayout"; // Impor
 import AdminCreateService from "./components/adminside/adminauth/AdminCreateService";
 import BookingsList from "./components/adminside/adminauth/BookingsList";
 import AdminReviews from "./components/adminside/adminauth/AdminReviews";
+
 
 
 
@@ -83,7 +87,8 @@ const App = () => {
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/booking/:bookingId" element={<BookingDetailPage />} />
         <Route path="/review/:bookingId" element={<ReviewPage />} /> 
-
+        <Route path="/worker/:workerId/visit" element={<VisitWorker />} />
+        <Route path="/user/video-call" element={<VideoCall role="user" />} /> 
 
 
         {/* Worker routes */}
@@ -96,6 +101,10 @@ const App = () => {
         <Route path="/worker/bookings" element={<WorkerBookings />} /> 
         <Route path="/worker/manage-bookings" element={<WorkerManageBookings />} />
         <Route path="/worker/reviews" element={<WorkerReviews />} />
+        <Route path="/worker/vedio-call" element={<VideoCall role="worker" />} /> 
+
+
+        
 
 
         {/* Admin routes */}
@@ -108,6 +117,11 @@ const App = () => {
         <Route path="/admin/bookings" element={<BookingsList />} /> 
         <Route path="/admin/reviews" element={<AdminReviews />} />
         
+
+
+
+
+
       </Routes>
       </GoogleOAuthProvider>
     </Router>
