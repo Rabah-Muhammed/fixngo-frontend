@@ -25,7 +25,7 @@ import ReviewPage from "./components/userside/reviewrating/ReviewPage";
 import SuccessPage from "./components/userside/servicepage/SuccessPage";
 import VisitWorker from "./components/userside/servicepage/VisitWorker";
 import VideoCall from "./components/chatroom/VideoCall";
-
+import ChatApp from "./components/chatroom/ChatApp";
 
 
 // Worker-side components
@@ -37,8 +37,9 @@ import SlotManagement from "./components/workerside/slotsmanage/SlotManagement";
 import ServiceSelection from "./components/workerside/servicemanage/ServiceSelection";
 import WorkerBookings from "./components/workerside/bookingmanage/WorkerBookings";
 import WorkerManageBookings from "./components/workerside/bookingmanage/WorkerManageBookings";
+import WorkerCompletedBookings from "./components/workerside/bookingmanage/WorkerCompletedBookings";
 import WorkerReviews from "./components/workerside/reviewsandrate/WorkerReviews";
-
+import WorkerWallet from "./components/workerside/bookingmanage/WorkerWallet";
 
 
 // Admin-side components
@@ -50,6 +51,9 @@ import AdminLayout from "./components/adminside/adminauth/AdminLayout"; // Impor
 import AdminCreateService from "./components/adminside/adminauth/AdminCreateService";
 import BookingsList from "./components/adminside/adminauth/BookingsList";
 import AdminReviews from "./components/adminside/adminauth/AdminReviews";
+
+
+
 
 
 
@@ -89,6 +93,7 @@ const App = () => {
         <Route path="/review/:bookingId" element={<ReviewPage />} /> 
         <Route path="/worker/:workerId/visit" element={<VisitWorker />} />
         <Route path="/user/video-call" element={<VideoCall role="user" />} /> 
+        <Route path="/chat" element={<ChatApp />} />
 
 
         {/* Worker routes */}
@@ -100,9 +105,10 @@ const App = () => {
         <Route path="/worker/slot-management" element={<SlotManagement />} />
         <Route path="/worker/bookings" element={<WorkerBookings />} /> 
         <Route path="/worker/manage-bookings" element={<WorkerManageBookings />} />
+        <Route path="/worker/completed-bookings" element={<WorkerCompletedBookings />} />
         <Route path="/worker/reviews" element={<WorkerReviews />} />
-        <Route path="/worker/vedio-call" element={<VideoCall role="worker" />} /> 
-
+        <Route path="/worker/video-call" element={<VideoCall role="worker" />} /> 
+        <Route path="/worker/wallet" element={<WorkerWallet />} />
 
         
 

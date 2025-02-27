@@ -2,20 +2,24 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import WorkerLayout from "../workerauth/WorkerLayout";
 import Toast from "../../../utils/Toast";
-import { FaClipboardList, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaPlay } from "react-icons/fa";
 
 const WorkerBookings = () => {
   const [bookings, setBookings] = useState([]);
   const token = localStorage.getItem("workerAccessToken");
 
   useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = () => {
     axios
       .get("http://localhost:8000/api/worker/bookings/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => setBookings(response.data))
       .catch((error) => console.error("Error fetching bookings:", error));
-  }, []);
+  };
 
   const handleBookingAction = (bookingId, action) => {
     axios
@@ -28,15 +32,25 @@ const WorkerBookings = () => {
       )
       .then((response) => {
         Toast("success", "Booking updated successfully!");
-        setBookings(
-          bookings.map((booking) =>
-            booking.id === bookingId
-              ? { ...booking, status: response.data.status }
-              : booking
-          )
-        );
+        fetchBookings(); // Refresh bookings list
       })
       .catch(() => Toast("error", "Failed to update booking."));
+  };
+
+  const handleStartWork = (bookingId) => {
+    axios
+      .patch(
+        `http://localhost:8000/api/worker/bookings/start/${bookingId}/`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((response) => {
+        Toast("success", "Work started successfully!");
+        fetchBookings(); // Refresh bookings to keep "Start Work" visible if needed
+      })
+      .catch(() => Toast("error", "Failed to start work."));
   };
 
   return (
@@ -86,6 +100,8 @@ const WorkerBookings = () => {
                       ? "text-yellow-600"
                       : booking.status === "processing"
                       ? "text-blue-600"
+                      : booking.status === "started"
+                      ? "text-green-600"
                       : "text-red-600"
                   }`}
                 >
@@ -110,6 +126,17 @@ const WorkerBookings = () => {
                       Reject
                     </button>
                   </div>
+                )}
+
+                {/* Start Work Button */}
+                {booking.status === "processing" && (
+                  <button
+                    onClick={() => handleStartWork(booking.id)}
+                    className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition duration-300"
+                  >
+                    <FaPlay />
+                    Start Work
+                  </button>
                 )}
               </div>
             ))}

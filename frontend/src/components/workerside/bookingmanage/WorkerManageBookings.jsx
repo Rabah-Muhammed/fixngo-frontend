@@ -7,7 +7,7 @@ import { FaClipboardList, FaCheckCircle } from "react-icons/fa";
 const WorkerManageBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [hoursWorked, setHoursWorked] = useState({});
-  const [error, setError] = useState(null);
+  const [error, setError] = useState({});
   const token = localStorage.getItem("workerAccessToken");
 
   useEffect(() => {
@@ -20,23 +20,30 @@ const WorkerManageBookings = () => {
   }, []);
 
   const handleHoursChange = (booking, hours) => {
-    const slotDuration = (new Date(booking.end_time) - new Date(booking.start_time)) / 3600000; // in hours
     if (hours < 0) {
-      Toast("error", "Hours worked cannot be negative.");
+      setError((prev) => ({ ...prev, [booking.id]: "Hours worked cannot be negative." }));
       return;
     }
-    if (hours > slotDuration) {
-      setError(`Hours worked cannot exceed slot duration of ${slotDuration.toFixed(2)} hours.`);
-    } else {
-      setError(null);
+    if (hours > 8) {
+      setError((prev) => ({ ...prev, [booking.id]: "Maximum allowed hours is 8." }));
+      return;
     }
+
+    setError((prev) => ({ ...prev, [booking.id]: null }));
     setHoursWorked((prev) => ({ ...prev, [booking.id]: hours }));
   };
 
   const calculateTotalCharge = (booking) => {
     const hours = hoursWorked[booking.id] || 0;
-    const price = booking.price || 0; // Ensure price is not undefined
+    const price = booking.price || 0;
     return (hours * price).toFixed(2);
+  };
+
+  const calculateUpdatedEndTime = (booking) => {
+    const startTime = new Date(booking.start_time);
+    const hours = hoursWorked[booking.id] || (booking.slot_duration || 0);
+    const newEndTime = new Date(startTime.getTime() + hours * 3600000);
+    return newEndTime.toLocaleString();
   };
 
   const markAsCompleted = (bookingId) => {
@@ -52,7 +59,7 @@ const WorkerManageBookings = () => {
         { hours_worked: hours },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(() => {
+      .then((response) => {
         Toast("success", "Booking marked as completed!");
         setBookings(bookings.filter((booking) => booking.id !== bookingId));
       })
@@ -80,11 +87,11 @@ const WorkerManageBookings = () => {
               <div key={booking.id} className="bg-white p-5 rounded-lg shadow-md border">
                 <h2 className="text-lg font-semibold text-gray-800">Service: {booking.service_name}</h2>
                 <p className="text-gray-600"><strong>Customer:</strong> {booking.user_name}</p>
-                <p className="text-gray-600"><strong>Start Time:</strong> {booking.start_time}</p>
-                <p className="text-gray-600"><strong>End Time:</strong> {booking.end_time}</p>
+                <p className="text-gray-600"><strong>Start Time:</strong> {new Date(booking.start_time).toLocaleString()}</p>
+                <p className="text-gray-600"><strong>Original End Time:</strong> {new Date(booking.end_time).toLocaleString()}</p>
                 <p className="text-blue-600 font-semibold mt-2">Status: {booking.status}</p>
 
-                {booking.status === "processing" && (
+                {booking.status === "started" && (
                   <div className="mt-3">
                     <label className="block text-gray-700 font-semibold mb-1">
                       Hours Worked:
@@ -94,11 +101,14 @@ const WorkerManageBookings = () => {
                       className="w-full p-2 border rounded-md"
                       placeholder="Enter hours worked"
                       min="0"
+                      max="8"
                       value={hoursWorked[booking.id] || ""}
                       onChange={(e) => handleHoursChange(booking, parseFloat(e.target.value))}
                     />
-                    {error && <p className="text-red-600 mt-2">{error}</p>}
+                    {error[booking.id] && <p className="text-red-600 mt-2">{error[booking.id]}</p>}
+                    
                     <p className="mt-2 font-semibold">Total Charge: ${calculateTotalCharge(booking)}</p>
+                    <p className="mt-2 text-gray-700"><strong>Updated End Time:</strong> {calculateUpdatedEndTime(booking)}</p>
 
                     <button
                       onClick={() => markAsCompleted(booking.id)}

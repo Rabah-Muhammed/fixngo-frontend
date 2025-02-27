@@ -42,6 +42,9 @@ const UserBookingsPage = () => {
           })
         );
 
+        // 🔥 Sort bookings in descending order based on created_at
+        bookingsWithReviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
         setBookings(bookingsWithReviews);
       } catch (error) {
         console.error("Failed to fetch bookings.", error);
@@ -80,6 +83,19 @@ const UserBookingsPage = () => {
     }
   };
 
+  // Helper function to format date/time in 12-hour format
+  const formatDateTime = (dateTime) => {
+    return new Date(dateTime).toLocaleString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="bg-gradient-to-t from-indigo-50 to-indigo-100">
       <Navbar />
@@ -92,8 +108,9 @@ const UserBookingsPage = () => {
           ) : (
             <ul className="space-y-6">
               {bookings.map((booking) => {
-                const startTime = new Date(booking.start_time).toLocaleString();
-                const endTime = new Date(booking.end_time).toLocaleString();
+                const startTime = formatDateTime(booking.start_time);
+                const endTime = formatDateTime(booking.end_time);
+                const createdTime = formatDateTime(booking.created_at);
                 const statusLower = booking.status.toLowerCase();
 
                 return (
@@ -116,6 +133,8 @@ const UserBookingsPage = () => {
                             ? "bg-blue-100 text-blue-500"
                             : statusLower === "completed"
                             ? "bg-gray-200 text-gray-500"
+                            : statusLower === "started"
+                            ? "bg-purple-100 text-purple-500"
                             : "bg-yellow-100 text-yellow-500"
                         }`}
                       >
@@ -127,10 +146,13 @@ const UserBookingsPage = () => {
                       <p>
                         <strong>Slot:</strong> {startTime} - {endTime}
                       </p>
+                      <p>
+                        <strong>Created:</strong> {createdTime}
+                      </p>
                     </div>
 
-                    {/* ✅ Hide Cancel button for workdone, completed, or cancelled bookings */}
-                    {!["completed", "cancelled", "workdone"].includes(statusLower) && (
+                    {/* ✅ Hide Cancel button for workdone, completed, started, or cancelled bookings */}
+                    {!["completed", "cancelled", "workdone", "started"].includes(statusLower) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

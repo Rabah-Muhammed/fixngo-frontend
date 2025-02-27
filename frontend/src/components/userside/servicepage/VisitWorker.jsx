@@ -27,6 +27,20 @@ const VisitWorker = () => {
         fetchWorkerProfile();
     }, [workerId]);
 
+    const handleStartChat = async () => {
+        try {
+            const token = localStorage.getItem("userAccessToken");
+            const response = await axios.post(
+                `${BASE_URL}/chat/start-chat/`,
+                { worker_id: workerId },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            navigate(`/chat/${response.data.chat_id}`);
+        } catch (error) {
+            console.error("Failed to start chat", error);
+        }
+    };
+
     if (!worker) return <NoWorkerFound />;
 
     return (
@@ -59,8 +73,8 @@ const VisitWorker = () => {
                         <DetailRow label="Service Area" value={worker.service_area || "Not Specified"} />
                     </div>
 
-                    {/* Video Call Button */}
-                    <div className="mt-6">
+                    {/* Video Call & Message Buttons */}
+                    <div className="mt-6 flex justify-center space-x-4">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -68,6 +82,14 @@ const VisitWorker = () => {
                             className="px-6 py-3 bg-blue-500 text-white rounded-lg text-lg font-semibold shadow-md hover:bg-blue-600 transition duration-300"
                         >
                             Start Video Call
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleStartChat}
+                            className="px-6 py-3 bg-green-500 text-white rounded-lg text-lg font-semibold shadow-md hover:bg-green-600 transition duration-300"
+                        >
+                            Message
                         </motion.button>
                     </div>
                 </motion.div>

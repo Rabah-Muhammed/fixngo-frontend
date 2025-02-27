@@ -64,11 +64,11 @@ const CheckoutPage = () => {
         setPlatformFee(Number(platformFeeRes.data.platform_fee));
 
         if (isRemainingPayment && bookingRes) {
-          // ✅ Fetch the actual remaining balance from the backend
+          //  Fetch the actual remaining balance from the backend
           const bookingData = bookingRes.data;
           setRemainingBalance(bookingData.remaining_balance);
         } else {
-          // ✅ Calculate slot duration and the remaining balance if it's an initial payment
+          //  Calculate slot duration and the remaining balance if it's an initial payment
           const startTime = new Date(slot.start_time);
           const endTime = new Date(slot.end_time);
           const durationInHours = (endTime - startTime) / (1000 * 60 * 60); // Convert ms to hours
@@ -122,7 +122,7 @@ const CheckoutPage = () => {
       }
   
       // Pass the payment type to the SuccessPage via state
-      setTimeout(() => navigate("/success", { state: { paymentType } }), 1500);
+      setTimeout(() => navigate("/success", { state: { paymentType } }), 1000);
     } catch (error) {
       Toast("error", "Payment failed. Try again.");
     }

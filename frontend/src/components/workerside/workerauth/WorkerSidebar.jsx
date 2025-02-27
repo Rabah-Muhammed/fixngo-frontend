@@ -1,9 +1,8 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MdDashboard, MdPerson } from "react-icons/md";
-import { FaTools, FaClipboardList, FaClipboardCheck } from "react-icons/fa";
+import { MdDashboard, MdPerson, MdVideoCall, MdAccountBalanceWallet } from "react-icons/md";
+import { FaTools, FaClipboardList, FaClipboardCheck, FaStar } from "react-icons/fa";
 import { RiCalendarCheckLine } from "react-icons/ri";
-import { FaStar } from "react-icons/fa"; // For the Reviews section
 
 const WorkerSidebar = () => {
   const location = useLocation();
@@ -93,8 +92,37 @@ const WorkerSidebar = () => {
             <span>Manage Bookings</span>
           </Link>
         </li>
+        <li>
+          <Link
+            to="/worker/completed-bookings"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/completed-bookings")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <FaClipboardCheck className="text-lg" />
+            <span>Completed Bookings</span>
+          </Link>
+        </li>
 
-        {/* New Reviews Link */}
+
+        {/* Wallet Section */}
+        <li>
+          <Link
+            to="/worker/wallet"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/wallet")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <MdAccountBalanceWallet className="text-lg" />
+            <span>Wallet</span>
+          </Link>
+        </li>
+
+        {/* Reviews Link */}
         <li>
           <Link
             to="/worker/reviews"
@@ -108,10 +136,25 @@ const WorkerSidebar = () => {
             <span>Reviews</span>
           </Link>
         </li>
+
+        {/* Video Call Link */}
+        <li>
+          <Link
+            to="/worker/video-call"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/video-call")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <MdVideoCall className="text-lg" />
+            <span>Connect</span>
+          </Link>
+        </li>
       </ul>
 
       {/* Footer */}
-      <div className="absolute bottom-4 left-0 w-full px-4">
+      <div className="absolute left-0 w-full px-8">
         <p className="text-xs text-gray-500 text-center">
           © 2025 FixNgo. All rights reserved.
         </p>
