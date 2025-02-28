@@ -44,10 +44,10 @@ const AdminCreateService = () => {
       reader.onloadend = () => setImagePreview(reader.result);
       if (files[0]) reader.readAsDataURL(files[0]);
     } else {
-      setFormData({
-        ...formData,
-        [name]: name === "hourly_rate" ? (value === "" ? "" : parseFloat(value)) : value,
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [name]: name === "hourly_rate" ? value : value, // Keep as string
+      }));
     }
   };
 
@@ -56,7 +56,7 @@ const AdminCreateService = () => {
     setLoading(true);
     setError(null);
 
-    if (!formData.name || !formData.description || !formData.hourly_rate || formData.hourly_rate <= 0) {
+    if (!formData.name || !formData.description || formData.hourly_rate === "" || parseFloat(formData.hourly_rate) <= 0) {
       setError("All fields are required and hourly rate must be a positive number.");
       setLoading(false);
       return;
@@ -66,7 +66,7 @@ const AdminCreateService = () => {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
-    data.append("hourly_rate", formData.hourly_rate);
+    data.append("hourly_rate", parseFloat(formData.hourly_rate).toFixed(2)); // Convert correctly
     if (formData.image) {
       data.append("image", formData.image);
     }
@@ -93,6 +93,7 @@ const AdminCreateService = () => {
       setFormData({ name: "", description: "", hourly_rate: "", image: null });
       setImagePreview(null);
       setShowForm(false);
+      setEditingService(null);
       fetchServices();
     } catch (err) {
       setError("Error saving service. Please try again.");
@@ -106,7 +107,7 @@ const AdminCreateService = () => {
     setFormData({
       name: service.name,
       description: service.description,
-      hourly_rate: service.hourly_rate,
+      hourly_rate: service.hourly_rate.toString(), // Convert to string for input
       image: null,
     });
     setImagePreview(service.image ? `http://localhost:8000${service.image}` : null);
@@ -114,29 +115,29 @@ const AdminCreateService = () => {
     formRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
+  const handleDelete = async (serviceId) => {
+    const accessToken = localStorage.getItem("adminAccessToken");
+    Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You won't be able to undo this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
-    });
-
-    if (result.isConfirmed) {
-      const accessToken = localStorage.getItem("adminAccessToken");
-      try {
-        await axios.delete(`http://localhost:8000/api/admin/services/${id}/`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        Swal.fire("Deleted!", "Your service has been deleted.", "success");
-        fetchServices();
-      } catch (err) {
-        Swal.fire("Failed", "There was an issue deleting the service.", "error");
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`http://localhost:8000/api/admin/services/${serviceId}/`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          Swal.fire("Deleted!", "The service has been removed.", "success");
+          fetchServices();
+        } catch (err) {
+          Swal.fire("Error!", "Failed to delete service.", "error");
+        }
       }
-    }
+    });
   };
 
   return (
@@ -159,7 +160,7 @@ const AdminCreateService = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Service Name" className="w-full p-3 border rounded-md" required />
               <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" className="w-full p-3 border rounded-md" required></textarea>
-              <input type="number" name="hourly_rate" value={formData.hourly_rate} onChange={handleChange} placeholder="Hourly Rate" className="w-full p-3 border rounded-md" required />
+              <input type="text" name="hourly_rate" value={formData.hourly_rate} onChange={handleChange} placeholder="Hourly Rate" className="w-full p-3 border rounded-md" required />
               <input type="file" name="image" onChange={handleChange} className="w-full p-3 border rounded-md" />
               {imagePreview && <img src={imagePreview} alt="Preview" className="mt-2 w-32 h-32 object-cover" />}
               {error && <p className="text-red-600">{error}</p>}
@@ -178,8 +179,8 @@ const AdminCreateService = () => {
             <div key={service.id} className="bg-white p-4 shadow-md rounded-lg">
               {service.image && <img src={`http://localhost:8000${service.image}`} alt={service.name} className="w-full h-40 object-cover rounded-md" />}
               <h3 className="text-lg font-semibold mt-3">{service.name}</h3>
-              <p className="text-gray-600 text-sm">{service.description.length > 50 ? `${service.description.substring(0, 50)}...` : service.description}</p>
-              <p className="text-indigo-600 font-semibold mt-2">${service.hourly_rate}/hr</p>
+              <p className="text-gray-600 text-sm">{service.description}</p>
+              <p className="text-indigo-600 font-semibold mt-2">${parseFloat(service.hourly_rate).toFixed(2)}/hr</p>
               <div className="flex justify-between mt-3">
                 <button onClick={() => handleEdit(service)} className="text-blue-600">Edit</button>
                 <button onClick={() => handleDelete(service.id)} className="text-red-600">Delete</button>

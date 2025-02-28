@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
-import Swal from "sweetalert2";  // For confirmation alerts
+import Swal from "sweetalert2";
 
 const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
@@ -28,8 +28,12 @@ const BookingsList = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching bookings:", error);
-        setError("Failed to fetch bookings. Please try again.");
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem("adminAccessToken");
+          window.location.href = "/admin/login";
+        } else {
+          setError("Failed to fetch bookings. Please try again.");
+        }
         setLoading(false);
       });
   }, []);
@@ -53,16 +57,20 @@ const BookingsList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .post(`http://localhost:8000/api/admin/bookings/cancel/${bookingId}/`, null, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          })
-          .then((response) => {
+          .post(
+            `http://localhost:8000/api/admin/bookings/cancel/${bookingId}/`,
+            null,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          )
+          .then(() => {
             Swal.fire("Cancelled", "The booking has been cancelled.", "success");
-            setBookings(bookings.filter((booking) => booking.id !== bookingId)); // Remove cancelled booking from the list
+            setBookings((prev) =>
+              prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
+            );
           })
-          .catch((error) => {
+          .catch(() => {
             Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
           });
       }
@@ -72,7 +80,7 @@ const BookingsList = () => {
   return (
     <AdminLayout>
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Bookings List</h1>
-      
+
       {loading ? (
         <p className="text-center text-xl">Loading...</p>
       ) : error ? (
@@ -82,7 +90,7 @@ const BookingsList = () => {
       ) : (
         <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
           <table className="w-full table-auto text-sm text-left text-gray-600">
-            <thead className="text-xs text-gray-700 uppercase bg-indigo-600">
+            <thead className="text-xs text--700 uppercase bg-indigo-600 text-white">
               <tr>
                 <th className="px-6 py-3">User</th>
                 <th className="px-6 py-3">Service</th>
@@ -97,30 +105,37 @@ const BookingsList = () => {
                 <tr key={booking.id} className="bg-gray-50 border-b hover:bg-gray-100">
                   <td className="px-6 py-4">{booking.user.username}</td>
                   <td className="px-6 py-4">{booking.service.name}</td>
-                  <td className="px-6 py-4">{booking.worker}</td>
+                  <td className="px-6 py-4">
+                    {booking.worker ? booking.worker.user.username : "Unassigned"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-white text-xs ${
+                        booking.status === "cancelled"
+                          ? "bg-red-500"
+                          : booking.status === "pending"
+                          ? "bg-yellow-500"
+                          : "bg-green-500"
+                      }`}
+                    >
+                      {booking.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">{new Date(booking.created_at).toLocaleString()}</td>
                   <td className="px-6 py-4">
                     {booking.status === "cancelled" ? (
                       <span className="text-red-500">Cancelled</span>
+                    ) : booking.status === "pending" ? (
+                      <button
+                        className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
+                        onClick={() => handleCancel(booking.id)}
+                      >
+                        Cancel
+                      </button>
                     ) : (
-                      <span>{booking.status}</span>
+                      <span className="text-gray-500">Not cancellable</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">{booking.created_at}</td>
-                  <td className="px-6 py-4">
-                  {booking.status === "cancelled" ? (
-                    <span className="text-red-500">Cancelled</span>
-                  ) : booking.status === "pending" ? (
-                    <button
-                      className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
-                      onClick={() => handleCancel(booking.id)}
-                    >
-                      Cancel
-                    </button>
-                  ) : (
-                    <span className="text-gray-500">Not cancellable</span> // For non-pending bookings
-                  )}
-                </td>
-
                 </tr>
               ))}
             </tbody>
