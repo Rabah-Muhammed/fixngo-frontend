@@ -1,18 +1,16 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MdDashboard, MdPerson, MdVideoCall, MdAccountBalanceWallet } from "react-icons/md";
-import { FaTools, FaClipboardList, FaClipboardCheck, FaStar } from "react-icons/fa";
+import { FaTools, FaClipboardList, FaClipboardCheck, FaStar, FaComments } from "react-icons/fa";
 import { RiCalendarCheckLine } from "react-icons/ri";
 
 const WorkerSidebar = () => {
   const location = useLocation();
 
-  // Active link style
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   return (
     <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-60 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-lg z-50 overflow-y-auto">
-      {/* Sidebar Links */}
       <ul className="py-6 px-4 space-y-3">
         <li>
           <Link
@@ -105,9 +103,6 @@ const WorkerSidebar = () => {
             <span>Completed Bookings</span>
           </Link>
         </li>
-
-
-        {/* Wallet Section */}
         <li>
           <Link
             to="/worker/wallet"
@@ -121,8 +116,6 @@ const WorkerSidebar = () => {
             <span>Wallet</span>
           </Link>
         </li>
-
-        {/* Reviews Link */}
         <li>
           <Link
             to="/worker/reviews"
@@ -136,8 +129,19 @@ const WorkerSidebar = () => {
             <span>Reviews</span>
           </Link>
         </li>
-
-        {/* Video Call Link */}
+        <li>
+          <Link
+            to="/worker/chat"
+            className={`flex items-center gap-3 p-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              isActive("/worker/chat")
+                ? "bg-indigo-600 shadow-md"
+                : "hover:bg-indigo-500 hover:shadow-lg"
+            }`}
+          >
+            <FaComments className="text-lg" />
+            <span>Messages</span>
+          </Link>
+        </li>
         <li>
           <Link
             to="/worker/video-call"
@@ -153,12 +157,6 @@ const WorkerSidebar = () => {
         </li>
       </ul>
 
-      {/* Footer */}
-      <div className="absolute left-0 w-full px-8">
-        <p className="text-xs text-gray-500 text-center">
-          © 2025 FixNgo. All rights reserved.
-        </p>
-      </div>
     </div>
   );
 };

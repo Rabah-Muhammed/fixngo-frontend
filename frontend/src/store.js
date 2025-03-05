@@ -4,6 +4,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Default to localStorage for web
 import { combineReducers } from "redux";
 import userReducer from "./features/userSlice";
+import workerReducer from "./features/workerSlice";
 
 // Persist configuration
 const persistConfig = {
@@ -14,6 +15,7 @@ const persistConfig = {
 // Combine reducers
 const rootReducer = combineReducers({
   user: userReducer,
+  worker: workerReducer,
 });
 
 // Create a persisted reducer

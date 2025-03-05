@@ -25,7 +25,7 @@ import ReviewPage from "./components/userside/reviewrating/ReviewPage";
 import SuccessPage from "./components/userside/servicepage/SuccessPage";
 import VisitWorker from "./components/userside/servicepage/VisitWorker";
 import VideoCall from "./components/chatroom/VideoCall";
-import ChatApp from "./components/chatroom/ChatApp";
+import ChatPage from "./components/chatroom/ChatPage";
 
 
 // Worker-side components
@@ -40,6 +40,8 @@ import WorkerManageBookings from "./components/workerside/bookingmanage/WorkerMa
 import WorkerCompletedBookings from "./components/workerside/bookingmanage/WorkerCompletedBookings";
 import WorkerReviews from "./components/workerside/reviewsandrate/WorkerReviews";
 import WorkerWallet from "./components/workerside/bookingmanage/WorkerWallet";
+import WorkerChatPage from "./components/chatroom/WorkerChatPage";
+
 
 
 // Admin-side components
@@ -93,7 +95,8 @@ const App = () => {
         <Route path="/review/:bookingId" element={<ReviewPage />} /> 
         <Route path="/worker/:workerId/visit" element={<VisitWorker />} />
         <Route path="/user/video-call" element={<VideoCall role="user" />} /> 
-        <Route path="/chat" element={<ChatApp />} />
+        <Route path="/chat/:chatId" element={<ChatPage />} /> 
+        <Route path="/worker/chat/:chatId" element={<WorkerChatPage />} />
 
 
         {/* Worker routes */}
@@ -109,6 +112,7 @@ const App = () => {
         <Route path="/worker/reviews" element={<WorkerReviews />} />
         <Route path="/worker/video-call" element={<VideoCall role="worker" />} /> 
         <Route path="/worker/wallet" element={<WorkerWallet />} />
+        <Route path="/worker/chat" element={<WorkerChatPage />} />
 
         
 

@@ -1,7 +1,30 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Line, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import AdminLayout from "./AdminLayout";
 import "chart.js/auto";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -40,6 +63,37 @@ const AdminDashboard = () => {
     return <div className="text-center text-gray-500 font-semibold mt-10">No data available.</div>;
   }
 
+  // 📊 Line Chart Data for Monthly Bookings
+  const lineChartData = {
+    labels: Object.keys(dashboardData.booking_trend_data),
+    datasets: [
+      {
+        label: "Bookings per Month",
+        data: Object.values(dashboardData.booking_trend_data),
+        fill: false,
+        borderColor: "#3b82f6",
+        backgroundColor: "#93c5fd",
+        tension: 0.1,
+      },
+    ],
+  };
+
+  // 🥧 Pie Chart Data for Booking Status
+  const pieChartData = {
+    labels: ["Pending", "Completed", "Cancelled"],
+    datasets: [
+      {
+        data: [
+          dashboardData.pending_bookings,
+          dashboardData.completed_bookings,
+          dashboardData.cancelled_bookings,
+        ],
+        backgroundColor: ["#facc15", "#22c55e", "#ef4444"],
+        hoverOffset: 4,
+      },
+    ],
+  };
+
   return (
     <AdminLayout>
       <h1 className="text-3xl font-bold text-center mb-8">Admin Dashboard</h1>
@@ -57,6 +111,19 @@ const AdminDashboard = () => {
         <DashboardCard title="Cancelled Bookings" value={dashboardData.cancelled_bookings || 0} color="red" />
         <DashboardCard title="Total Earnings" value={`$${dashboardData.total_earnings || 0}`} color="blue" />
         <DashboardCard title="Platform Earnings" value={`$${dashboardData.platform_earnings || 0}`} color="gray" />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 max-w-7xl mx-auto">
+        <div className="bg-white p-6 shadow-lg rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Booking Trend</h2>
+          <Line data={lineChartData} />
+        </div>
+
+        <div className="bg-white p-6 shadow-lg rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Booking Status Distribution</h2>
+          <Pie data={pieChartData} />
+        </div>
       </div>
 
       {/* Recent Activity */}
@@ -92,9 +159,7 @@ const AdminDashboard = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center p-4 text-gray-500">
-                    No recent bookings
-                  </td>
+                  <td colSpan="6" className="text-center p-4 text-gray-500">No recent bookings</td>
                 </tr>
               )}
             </tbody>
@@ -105,27 +170,20 @@ const AdminDashboard = () => {
   );
 };
 
-// Status Badge Colors
+// 📌 Status Badge Colors
 const getStatusColor = (status) => {
   switch (status) {
-    case "pending":
-      return "bg-yellow-500";
-    case "processing":
-      return "bg-blue-500";
-    case "started":
-      return "bg-indigo-500";
-    case "workdone":
-      return "bg-teal-500";
-    case "completed":
-      return "bg-green-500";
-    case "cancelled":
-      return "bg-red-500";
-    default:
-      return "bg-gray-500";
+    case "pending": return "bg-yellow-500";
+    case "processing": return "bg-blue-500";
+    case "started": return "bg-indigo-500";
+    case "workdone": return "bg-teal-500";
+    case "completed": return "bg-green-500";
+    case "cancelled": return "bg-red-500";
+    default: return "bg-gray-500";
   }
 };
 
-// Dashboard Card Component
+// 📌 Dashboard Card Component
 const DashboardCard = ({ title, value, color }) => (
   <div className={`p-6 bg-white shadow-lg rounded-xl border-t-4 border-${color}-500`}>
     <h2 className="text-lg font-semibold text-gray-700">{title}</h2>

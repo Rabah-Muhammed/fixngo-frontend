@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import WorkerLayout from "./WorkerLayout";
 import { FaUser, FaEnvelope, FaWallet, FaBriefcase, FaStar } from "react-icons/fa";
 
+
+
+
 const WorkerDashboardPage = () => {
   const [workerData, setWorkerData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,6 +94,7 @@ const WorkerDashboardPage = () => {
           ))}
         </ul>
       </div>
+      
     </WorkerLayout>
   );
 };
