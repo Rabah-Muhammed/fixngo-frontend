@@ -30,7 +30,7 @@ const ChatSidebar = ({ accessToken, isWorker, currentChatId, onChatSelect, userE
 
     if (accessToken) fetchRooms();
 
-    const ws = new WebSocket(`ws://${apiInstance.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`);
+    const ws = new WebSocket(`wss://${apiInstance.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`);
     ws.onopen = () => console.log("Notification WebSocket connected");
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);

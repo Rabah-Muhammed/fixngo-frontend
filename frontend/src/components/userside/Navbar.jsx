@@ -46,7 +46,7 @@ const Navbar = () => {
     if (!isAuthenticated || !accessToken || !userEmail) return;
 
     const ws = new WebSocket(
-      `ws://${api.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`
+      `wss://${api.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`
     );
 
     ws.onopen = () => console.log("Navbar Notification WebSocket connected");

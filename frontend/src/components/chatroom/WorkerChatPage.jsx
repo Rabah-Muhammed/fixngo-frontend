@@ -54,7 +54,7 @@ const WorkerChatPage = () => {
     if (activeChatId) {
       fetchParticipantUsername(activeChatId);
 
-      const wsUrl = `ws://${apiInstance.defaults.baseURL.split("//")[1]}/ws/chat/${activeChatId}/?token=${accessToken}`;
+      const wsUrl = `wss://${apiInstance.defaults.baseURL.split("//")[1]}/ws/chat/${activeChatId}/?token=${accessToken}`;
       console.log("Connecting to WebSocket:", wsUrl);
       console.log("WebSocket Token:", accessToken);
       console.log("Worker Email from Redux:", workerEmail);
