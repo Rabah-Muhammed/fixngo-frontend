@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux"; // Added Redux hook
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import Navbar from "../../userside/Navbar";
-import { workerLogin } from "../../../features/workerSlice"; // Import workerLogin action
+import { workerLogin } from "../../../features/workerSlice";
+import apiInstance from '../../../utils/apiInstance'
 
 const WorkerLoginPage = () => {
   const [formData, setFormData] = useState({
@@ -23,22 +24,31 @@ const WorkerLoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/worker/login/", formData);
+      const response = await apiInstance.post("/api/worker/login/", formData);
       const { access, refresh } = response.data;
 
-      // Dispatch worker login data to Redux
-      dispatch(workerLogin({
-        worker: { email: formData.email }, // Use form email; adjust if API returns email
-        accessToken: access,
-        refreshToken: refresh,
-      }));
+      // Include both email and username in Redux
+      const workerData = {
+        email: formData.email, // Keep email as before
+        username: response.data.user.username, // Add username from backend
+      };
 
-      // Optional: Keep localStorage for backward compatibility (remove if fully using Redux)
+      // Dispatch worker login data to Redux
+      dispatch(
+        workerLogin({
+          worker: workerData,
+          accessToken: access,
+          refreshToken: refresh,
+        })
+      );
+
+      // Keep localStorage as is
       localStorage.setItem("workerAccessToken", access);
       localStorage.setItem("workerRefreshToken", refresh);
-      localStorage.setItem("workerEmail", formData.email); // Set for fallback
+      localStorage.setItem("workerEmail", formData.email); // Keep for other features
+      localStorage.setItem("workerUsername", workerData.username); // Optional: add for consistency
 
-      console.log("Worker logged in, email set:", formData.email);
+      console.log("Worker logged in, username:", workerData.username, "email:", workerData.email);
       navigate("/worker/dashboard");
     } catch (error) {
       alert("Invalid credentials. Please try again.");

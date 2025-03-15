@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../Navbar";
+import apiInstance from "../../../utils/apiInstance";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://127.0.0.1:8000/api/request-reset-password/", { email });
+      await apiInstance.post("/api/request-reset-password/", { email });
       toast.success("OTP sent to your email!", { autoClose: 1000 });
       navigate("/reset-password");  // Redirect to reset password page
     } catch (error) {

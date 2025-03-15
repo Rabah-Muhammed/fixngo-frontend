@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaWallet, FaHistory } from "react-icons/fa";
 import WorkerLayout from "../workerauth/WorkerLayout";
+import workerApi from "../../../utils/axiosWorkerInterceptor";
 
-const BASE_URL = "http://localhost:8000";
 
 const WorkerWallet = () => {
   const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState([]);  // ✅ Default empty array
+  const [transactions, setTransactions] = useState([]);  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,12 +17,12 @@ const WorkerWallet = () => {
       if (!token) return;
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/worker-wallet/`, {
+        const response = await workerApi.get(`/api/worker-wallet/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         setBalance(response.data.balance);
-        setTransactions(response.data.transactions || []);  // ✅ Ensure transactions is always an array
+        setTransactions(response.data.transactions || []);  
       } catch (error) {
         console.error("Error fetching wallet data:", error);
         setError("Failed to load wallet data.");

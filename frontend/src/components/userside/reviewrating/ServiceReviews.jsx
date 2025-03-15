@@ -3,8 +3,9 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
 import Toast from "../../../utils/Toast";
+import api from "../../../utils/axiosInterceptor";
 
-const BASE_URL = "http://localhost:8000";
+
 
 const ServiceReviews = () => {
   const { serviceId } = useParams();
@@ -14,7 +15,7 @@ const ServiceReviews = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/services/${serviceId}/reviews/`);
+        const response = await api.get(`/api/services/${serviceId}/reviews/`);
         setReviews(response.data);
       } catch (error) {
         console.error("Error fetching reviews:", error);

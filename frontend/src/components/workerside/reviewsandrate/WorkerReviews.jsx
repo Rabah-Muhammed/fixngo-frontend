@@ -3,6 +3,8 @@ import axios from "axios";
 import WorkerLayout from "../workerauth/WorkerLayout";
 import Toast from "../../../utils/Toast";
 import { FaStar, FaClipboardList } from "react-icons/fa";
+import workerApi from "../../../utils/axiosWorkerInterceptor";
+
 
 const WorkerReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -10,8 +12,8 @@ const WorkerReviews = () => {
   const token = localStorage.getItem("workerAccessToken");
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/worker/reviews/", {
+    workerApi
+      .get("/api/worker/reviews/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => setReviews(response.data))

@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import WorkerLayout from "../workerauth/WorkerLayout";
 import { FaWrench } from "react-icons/fa";
 import Toast from "../../../utils/Toast";
+import workerApi from "../../../utils/axiosWorkerInterceptor";
+
 
 const ServiceSelection = () => {
   const [services, setServices] = useState([]);
@@ -19,8 +21,8 @@ const ServiceSelection = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:8000/api/worker/services/", {
+    workerApi
+      .get("/api/worker/services/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -45,9 +47,9 @@ const ServiceSelection = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    axios
+    workerApi
       .put(
-        "http://localhost:8000/api/worker/services/update/",
+        "/api/worker/services/update/",
         { services: selectedServices },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("workerAccessToken")}` },

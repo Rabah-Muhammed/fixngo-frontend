@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Toast from "../../../utils/Toast"; // Importing the Toast function
+import apiInstance from "../../../utils/apiInstance";
 
 const OTPVerification = () => {
   const location = useLocation();
@@ -13,7 +14,7 @@ const OTPVerification = () => {
   const handleVerifyOtp = async () => {
     setLoading(true);
     try {
-      await axios.post("http://localhost:8000/api/verify-otp/", { email, otp });
+      await apiInstance.post("/api/verify-otp/", { email, otp });
       Toast("success", "OTP verified successfully!");
       navigate("/login");
     } catch (error) {
@@ -25,7 +26,7 @@ const OTPVerification = () => {
 
   const handleResendOtp = async () => {
     try {
-      await axios.post("http://localhost:8000/api/resend-otp/", { email });
+      await apiInstance.post("/api/resend-otp/", { email });
       Toast("success", "OTP resent successfully.");
     } catch (error) {
       Toast("error", "Unable to resend OTP. Try again.");

@@ -5,8 +5,9 @@ import ReactStars from "react-stars";
 import Toast from "../../../utils/Toast";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import api from "../../../utils/axiosInterceptor";
 
-const BASE_URL = "http://localhost:8000";
+
 
 const ReviewPage = () => {
   const { bookingId } = useParams();
@@ -26,7 +27,7 @@ const ReviewPage = () => {
 
     const fetchReview = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/reviews/booking/${bookingId}/`, {
+        const response = await api.get(`/api/reviews/booking/${bookingId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -67,12 +68,12 @@ const ReviewPage = () => {
       };
 
       if (existingReview) {
-        response = await axios.put(`${BASE_URL}/api/reviews/${existingReview.id}/`, reviewData, {
+        response = await api.put(`/api/reviews/${existingReview.id}/`, reviewData, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
         Toast("success", "Review updated successfully!");
       } else {
-        response = await axios.post(`${BASE_URL}/api/reviews/`, reviewData, {
+        response = await api.post(`/api/reviews/`, reviewData, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
         Toast("success", "Review submitted successfully!");

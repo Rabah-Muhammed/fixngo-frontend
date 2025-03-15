@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { loginn } from "../../../features/userSlice"; // Import the login action
 import Toast from "../../../utils/Toast"; // Import the custom Toast function
 import GoogleLoginButton from "./GoogleLoginButton";
+import apiInstance from "../../../utils/apiInstance";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -27,20 +28,26 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/login/", formData);
+      const response = await apiInstance.post("/api/login/", formData);
+
+      const userData = {
+        ...response.data.user,
+        username: response.data.user.username || (() => { throw new Error("Username not provided by backend"); })(),
+      };
 
       // Dispatch login action to update Redux store
       dispatch(
         loginn({
-          user: response.data.user,
+          user: userData,
           accessToken: response.data.access,
           refreshToken: response.data.refresh,
         })
       );
 
       // Save tokens with custom names
-      localStorage.setItem("userAccessToken", response.data.access); // Custom token name
-      localStorage.setItem("userRefreshToken", response.data.refresh); // Custom token name
+      localStorage.setItem("userAccessToken", response.data.access); 
+      localStorage.setItem("userRefreshToken", response.data.refresh); 
+      localStorage.setItem("userEmail", userData.email);
 
       // Show success toast
       Toast("success", "Login successful! Redirecting...");

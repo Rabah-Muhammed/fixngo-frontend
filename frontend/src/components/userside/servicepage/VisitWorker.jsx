@@ -7,8 +7,9 @@ import Footer from "../Footer";
 import { motion } from "framer-motion";
 import Toast from "../../../utils/Toast";
 import { loginn } from "../../../features/userSlice";
+import api from "../../../utils/axiosInterceptor";
 
-const BASE_URL = "http://localhost:8000";
+
 
 const VisitWorker = () => {
   const { workerId } = useParams();
@@ -27,7 +28,7 @@ const VisitWorker = () => {
           navigate("/login");
           return;
         }
-        const response = await axios.get(`${BASE_URL}/api/worker/${workerId}/`, {
+        const response = await api.get(`${api.defaults.baseURL}/api/worker/${workerId}/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         console.log("Worker Profile Response:", response.data);
@@ -51,8 +52,8 @@ const VisitWorker = () => {
       }
 
       console.log("Attempting to start chat with Worker ID:", workerId);
-      const response = await axios.post(
-        `${BASE_URL}/api/chat/start-chat/`,
+      const response = await api.post(
+        `${api.defaults.baseURL}/api/chat/start-chat/`,
         { worker_id: workerId },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
@@ -89,7 +90,7 @@ const VisitWorker = () => {
         >
           <div className="flex flex-col items-center">
             <img
-              src={worker.profile_picture ? `${BASE_URL}${worker.profile_picture}` : "/default-avatar.png"}
+              src={worker.profile_picture ? `${api.defaults.baseURL}${worker.profile_picture}` : "/default-avatar.png"}
               alt={worker.username}
               className="w-28 h-28 rounded-full object-cover border-4 border-transparent shadow-lg"
             />

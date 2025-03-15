@@ -6,8 +6,9 @@ import Toast from "../../utils/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa"; // Added FaArrowLeft
 import ChatSidebar from "./ChatSidebar";
+import apiInstance from "../../utils/apiInstance"
 
-const BASE_URL = "http://localhost:8000";
+
 
 const WorkerChatPage = () => {
   const { chatId: initialChatId } = useParams();
@@ -38,7 +39,7 @@ const WorkerChatPage = () => {
 
     const fetchParticipantUsername = async (chatId) => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/chat/rooms/`, {
+        const response = await apiInstance.get(`/api/chat/rooms/`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         const room = response.data.find((r) => r.id === parseInt(chatId));
@@ -53,7 +54,7 @@ const WorkerChatPage = () => {
     if (activeChatId) {
       fetchParticipantUsername(activeChatId);
 
-      const wsUrl = `ws://${BASE_URL.split('//')[1]}/ws/chat/${activeChatId}/?token=${accessToken}`;
+      const wsUrl = `ws://${apiInstance.defaults.baseURL.split("//")[1]}/ws/chat/${activeChatId}/?token=${accessToken}`;
       console.log("Connecting to WebSocket:", wsUrl);
       console.log("WebSocket Token:", accessToken);
       console.log("Worker Email from Redux:", workerEmail);
@@ -203,10 +204,10 @@ const WorkerChatPage = () => {
                       {msg.content && <span className="text-sm font-light">{msg.content}</span>}
                       {msg.image && (
                         <img
-                          src={`${BASE_URL}${msg.image}`}
+                          src={`${apiInstance.defaults.baseURL}${msg.image}`}
                           alt="Shared image"
                           className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
-                          onClick={() => window.open(`${BASE_URL}${msg.image}`, "_blank")}
+                          onClick={() => window.open(`${apiInstance.defaults.baseURL}${msg.image}`, "_blank")}
                         />
                       )}
                       <span className="text-xs opacity-70 mt-2">

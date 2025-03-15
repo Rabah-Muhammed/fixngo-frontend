@@ -6,8 +6,9 @@ import Toast from "../../../utils/Toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import api from "../../../utils/axiosInterceptor";
 
-const BASE_URL = "http://localhost:8000";
+
 
 const UserBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -23,7 +24,7 @@ const UserBookingsPage = () => {
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/user/bookings/`, {
+        const response = await api.get(`/api/user/bookings/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -31,8 +32,8 @@ const UserBookingsPage = () => {
         const bookingsWithReviews = await Promise.all(
           response.data.map(async (booking) => {
             try {
-              const reviewResponse = await axios.get(
-                `${BASE_URL}/api/reviews/booking/${booking.id}/`,
+              const reviewResponse = await api.get(
+                `/api/reviews/booking/${booking.id}/`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
               return { ...booking, review: reviewResponse.data };
@@ -59,8 +60,8 @@ const UserBookingsPage = () => {
     try {
       const token = localStorage.getItem("userAccessToken");
 
-      const response = await axios.patch(
-        `${BASE_URL}/api/bookings/cancel/${bookingId}/`,
+      const response = await api.patch(
+        `/api/bookings/cancel/${bookingId}/`,
         {},
         {
           headers: {

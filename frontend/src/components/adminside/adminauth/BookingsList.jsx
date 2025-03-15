@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
 import Swal from "sweetalert2";
+import adminApi from "../../../utils/axiosAdminInterceptor";
+
+
 
 const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
@@ -9,44 +13,37 @@ const BookingsList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("adminAccessToken");
+    const fetchBookings = async () => {
+      const accessToken = localStorage.getItem("adminAccessToken");
+      if (!accessToken) {
+        setError("Access token is missing. Please log in again.");
+        setLoading(false);
+        return;
+      }
 
-    if (!accessToken) {
-      setError("Access token is missing or expired.");
-      setLoading(false);
-      return;
-    }
-
-    axios
-      .get("http://localhost:8000/api/admin/bookings/", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => {
+      try {
+        const response = await adminApi.get("/api/admin/bookings/", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         setBookings(response.data);
+      } catch (error) {
+        setError(error.response?.data?.detail || "Failed to fetch bookings.");
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem("adminAccessToken");
-          window.location.href = "/admin/login";
-        } else {
-          setError("Failed to fetch bookings. Please try again.");
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchBookings();
   }, []);
 
-  const handleCancel = (bookingId) => {
+  const handleCancel = async (bookingId) => {
     const accessToken = localStorage.getItem("adminAccessToken");
-
     if (!accessToken) {
       Swal.fire("Error", "Access token is missing. Please log in again.", "error");
       return;
     }
 
-    Swal.fire({
+    const confirmResult = await Swal.fire({
       title: "Are you sure?",
       text: "You are about to cancel this booking.",
       icon: "warning",
@@ -54,27 +51,20 @@ const BookingsList = () => {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, cancel it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .post(
-            `http://localhost:8000/api/admin/bookings/cancel/${bookingId}/`,
-            null,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          )
-          .then(() => {
-            Swal.fire("Cancelled", "The booking has been cancelled.", "success");
-            setBookings((prev) =>
-              prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
-            );
-          })
-          .catch(() => {
-            Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
-          });
-      }
     });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        await adminApi.post(`/cancel/${bookingId}/`, null, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        setBookings((prev) => prev.filter((b) => b.id !== bookingId)); // Remove from state
+        Swal.fire("Cancelled", "The booking has been cancelled.", "success");
+      } catch (error) {
+        Swal.fire("Error", "Failed to cancel booking. Please try again.", "error");
+      }
+    }
   };
 
   return (
@@ -90,7 +80,7 @@ const BookingsList = () => {
       ) : (
         <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
           <table className="w-full table-auto text-sm text-left text-gray-600">
-            <thead className="text-xs text--700 uppercase bg-indigo-600 text-white">
+            <thead className="text-xs uppercase bg-indigo-600 text-white">
               <tr>
                 <th className="px-6 py-3">User</th>
                 <th className="px-6 py-3">Service</th>
@@ -103,7 +93,7 @@ const BookingsList = () => {
             <tbody className="text-sm font-medium text-gray-700">
               {bookings.map((booking) => (
                 <tr key={booking.id} className="bg-gray-50 border-b hover:bg-gray-100">
-                  <td className="px-6 py-4">{booking.user.username}</td>
+                  <td className="px-6 py-4">{booking.user ? booking.user.username : "N/A"}</td>
                   <td className="px-6 py-4">{booking.service.name}</td>
                   <td className="px-6 py-4">
                     {booking.worker ? booking.worker.user.username : "Unassigned"}
@@ -122,9 +112,15 @@ const BookingsList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{new Date(booking.created_at).toLocaleString()}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex space-x-2">
+                    <Link
+                      to={`/admin/bookings/${booking.id}`}
+                      className="px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-opacity-80"
+                    >
+                      View Details
+                    </Link>
                     {booking.status === "cancelled" ? (
-                      <span className="text-red-500">Cancelled</span>
+                      <span className="text-red-500 cursor-not-allowed">Cancelled</span>
                     ) : booking.status === "pending" ? (
                       <button
                         className="px-4 py-2 rounded-full bg-red-700 text-white hover:bg-opacity-80"
@@ -133,7 +129,7 @@ const BookingsList = () => {
                         Cancel
                       </button>
                     ) : (
-                      <span className="text-gray-500">Not cancellable</span>
+                      <span className="text-gray-500 cursor-not-allowed">Not cancellable</span>
                     )}
                   </td>
                 </tr>

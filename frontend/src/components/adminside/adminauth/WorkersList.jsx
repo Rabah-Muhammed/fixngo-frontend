@@ -3,7 +3,9 @@ import axios from "axios";
 import Swal from "sweetalert2"; // SweetAlert2 for delete confirmation
 import Toast from "../../../utils/Toast"; // Import the Toast utility
 import AdminLayout from "./AdminLayout";
-import { FiLock, FiUnlock, FiTrash2 } from "react-icons/fi"; // Import icons for block/unblock and delete
+import { FiLock, FiUnlock, FiTrash2 } from "react-icons/fi"; 
+import adminApi from "../../../utils/axiosAdminInterceptor";
+
 
 const WorkerList = () => {
   const [workers, setWorkers] = useState([]);
@@ -20,8 +22,8 @@ const WorkerList = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:8000/api/admin/workers/", {
+    adminApi
+      .get("/api/admin/workers/", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -53,7 +55,7 @@ const WorkerList = () => {
       return;
     }
 
-    const url = `http://localhost:8000/api/admin/${isActive ? "block" : "unblock"}/${workerId}/`;
+    const url = `${adminApi.defaults.baseURL}/api/admin/${isActive ? "block" : "unblock"}/${workerId}/`;
 
     axios
       .post(url, {}, {
@@ -99,8 +101,8 @@ const WorkerList = () => {
           return;
         }
 
-        axios
-          .delete(`http://localhost:8000/api/admin/delete-worker/${workerId}/`, {
+        adminApi
+          .delete(`/api/admin/deletee/${workerId}/`, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../Navbar"; // Assuming you have a Navbar component
 import Toast from "../../../utils/Toast"; // Importing the Toast function
+import apiInstance from "../../../utils/apiInstance";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ const SignupPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("http://localhost:8000/api/signup/", formData);
+      await apiInstance.post("/api/signup/", formData);
       Toast("success", "Signup successful! OTP sent to your email.");
       navigate("/verify-otp", { state: { email: formData.email } });
     } catch (error) {
@@ -65,6 +66,7 @@ const SignupPage = () => {
               placeholder="Phone Number"
               value={formData.phone_number}
               onChange={handleChange}
+              required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
             <input

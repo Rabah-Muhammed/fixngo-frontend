@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../../userside/Navbar";
 import Toast from "../../../utils/Toast"; // Import your custom Toast function
+import apiInstance from '../../../utils/apiInstance'
 
 const WorkerSignupPage = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ const WorkerSignupPage = () => {
 
     try {
       // Send the form data to the backend API
-      await axios.post("http://localhost:8000/api/worker/signup/", formData);
+      await apiInstance.post("/api/worker/signup/", formData);
       
       Toast("success", "Worker account created successfully!");
 

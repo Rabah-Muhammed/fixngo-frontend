@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import apiInstance from "../../../utils/apiInstance";
+
 
 const AdminLoginPage = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +22,7 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/admin/login/", formData);
+      const response = await apiInstance.post("/api/admin/login/", formData);
 
       // Store the JWT tokens in localStorage
       localStorage.setItem("adminAccessToken", response.data.access);

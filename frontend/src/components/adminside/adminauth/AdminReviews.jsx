@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import AdminLayout from "./AdminLayout"; // Import your AdminLayout component
+import AdminLayout from "./AdminLayout"; 
+import adminApi from "../../../utils/axiosAdminInterceptor";
+
 
 const AdminReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -9,7 +11,7 @@ const AdminReviews = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/admin/reviews/", {
+        const response = await adminApi.get("/api/admin/reviews/", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("adminAccessToken")}`,
           },

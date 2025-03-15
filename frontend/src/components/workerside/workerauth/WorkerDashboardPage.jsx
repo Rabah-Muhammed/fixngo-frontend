@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import WorkerLayout from "./WorkerLayout";
 import { FaUser, FaEnvelope, FaWallet, FaBriefcase, FaStar } from "react-icons/fa";
-
+import workerApi from "../../../utils/axiosWorkerInterceptor";
 
 
 
@@ -20,8 +20,8 @@ const WorkerDashboardPage = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:8000/api/worker/dashboard/", {
+    workerApi
+      .get("/api/worker/dashboard/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

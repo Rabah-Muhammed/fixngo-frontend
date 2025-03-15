@@ -7,9 +7,10 @@ import Navbar from "../Navbar";
 import Toast from "../../../utils/Toast";
 import Footer from "../Footer";
 import { motion } from "framer-motion";
-import ServiceReviews from "../reviewrating/ServiceReviews"; // Import the reviews component
+import ServiceReviews from "../reviewrating/ServiceReviews"; 
+import api from "../../../utils/axiosInterceptor";
 
-const BASE_URL = "http://localhost:8000";
+
 
 const ServiceDetailPage = () => {
   const { serviceId } = useParams();
@@ -28,7 +29,7 @@ const ServiceDetailPage = () => {
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}/api/services/${serviceId}/`, {
+        const response = await api.get(`${api.defaults.baseURL}/api/services/${serviceId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setService(response.data);
@@ -59,7 +60,7 @@ const ServiceDetailPage = () => {
           {service.image && (
             <div className="relative h-80 overflow-hidden">
               <img
-                src={`${BASE_URL}${service.image}`}
+                src={`${api.defaults.baseURL}${service.image}`}
                 alt={service.name}
                 className="w-full h-full object-cover"
               />

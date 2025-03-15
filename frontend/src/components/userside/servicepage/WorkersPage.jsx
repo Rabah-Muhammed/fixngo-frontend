@@ -7,6 +7,7 @@ import Navbar from "../Navbar";
 import Toast from "../../../utils/Toast";
 import Footer from "../Footer";
 import { motion } from "framer-motion";
+import api from "../../../utils/axiosInterceptor";
 
 const WorkersPage = () => {
   const { serviceId } = useParams();
@@ -27,10 +28,10 @@ const WorkersPage = () => {
 
       try {
         const [workersResponse, serviceResponse] = await Promise.all([
-          axios.get(`http://localhost:8000/api/services/${serviceId}/workers/`, {
+          api.get(`/api/services/${serviceId}/workers/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:8000/api/services/${serviceId}/`, {
+          api.get(`/api/services/${serviceId}/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -129,7 +130,7 @@ const WorkerCard = ({ worker, index, navigate, serviceId }) => (
     className="bg-white rounded-lg shadow-lg p-4 flex flex-col items-center hover:shadow-xl transition-shadow duration-300 w-full max-w-xs"
   >
     <img
-      src={worker.profile_picture ? `http://localhost:8000${worker.profile_picture}` : "/default-avatar.png"}
+      src={worker.profile_picture ? `${api.defaults.baseURL}${worker.profile_picture}` : "/default-avatar.png"}
       alt={worker.username}
       className="w-20 h-20 rounded-full object-cover border-4 border-indigo-400 mb-4"
     />

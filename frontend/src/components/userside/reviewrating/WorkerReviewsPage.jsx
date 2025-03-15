@@ -5,6 +5,7 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import Toast from "../../../utils/Toast";
 import { motion } from "framer-motion";
+import api from "../../../utils/axiosInterceptor";
 
 const WorkerReviewsPage = () => {
   const { workerId } = useParams();
@@ -23,7 +24,7 @@ const WorkerReviewsPage = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:8000/api/workers/${workerId}/reviews/`, {
+        const response = await api.get(`/api/workers/${workerId}/reviews/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setReviews(response.data);

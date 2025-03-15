@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import AdminLayout from "./AdminLayout";
 import "chart.js/auto";
+import adminApi from "../../../utils/axiosAdminInterceptor"
 
 ChartJS.register(
   CategoryScale,
@@ -34,8 +35,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("adminAccessToken");
 
-    axios
-      .get("http://localhost:8000/api/admin/dashboard/", {
+    adminApi
+      .get("/api/admin/dashboard/", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

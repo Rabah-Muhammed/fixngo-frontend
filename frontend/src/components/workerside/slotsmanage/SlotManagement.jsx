@@ -7,6 +7,8 @@ import WorkerLayout from "../workerauth/WorkerLayout";
 import Toast from "../../../utils/Toast";
 import { format } from "date-fns-tz";
 import Swal from "sweetalert2";
+import workerApi from "../../../utils/axiosWorkerInterceptor";
+
 
 const SlotManagement = () => {
   const [slots, setSlots] = useState([]);
@@ -26,8 +28,8 @@ const SlotManagement = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:8000/api/worker/slots/", {
+    workerApi
+      .get("/api/worker/slots/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -54,9 +56,9 @@ const SlotManagement = () => {
 
     if (editingSlot) {
       // Editing an existing slot
-      axios
+      workerApi
         .put(
-          `http://localhost:8000/api/worker/slot/edit/${editingSlot.id}/`,
+          `/api/worker/slot/edit/${editingSlot.id}/`,
           {
             start_time: startTimeUTC,
             end_time: endTimeUTC,
@@ -83,9 +85,9 @@ const SlotManagement = () => {
         });
     } else {
       // Adding a new slot
-      axios
+      workerApi
         .post(
-          "http://localhost:8000/api/worker/slots/",
+          "/api/worker/slots/",
           {
             start_time: startTimeUTC,
             end_time: endTimeUTC,
@@ -121,8 +123,8 @@ const SlotManagement = () => {
       if (result.isConfirmed) {
         const token = localStorage.getItem("workerAccessToken");
 
-        axios
-          .delete(`http://localhost:8000/api/worker/slot/delete/${slotId}/`, {
+        workerApi
+          .delete(`/api/worker/slot/delete/${slotId}/`, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(() => {

@@ -41,8 +41,7 @@ import WorkerCompletedBookings from "./components/workerside/bookingmanage/Worke
 import WorkerReviews from "./components/workerside/reviewsandrate/WorkerReviews";
 import WorkerWallet from "./components/workerside/bookingmanage/WorkerWallet";
 import WorkerChatPage from "./components/chatroom/WorkerChatPage";
-
-
+import WorkerBookingDetail from "./components/workerside/bookingmanage/WorkerBookingDetail";
 
 // Admin-side components
 import AdminLoginPage from "./components/adminside/adminauth/AdminLoginPage";
@@ -53,12 +52,14 @@ import AdminLayout from "./components/adminside/adminauth/AdminLayout"; // Impor
 import AdminCreateService from "./components/adminside/adminauth/AdminCreateService";
 import BookingsList from "./components/adminside/adminauth/BookingsList";
 import AdminReviews from "./components/adminside/adminauth/AdminReviews";
+import AdminBookingDetail from "./components/adminside/adminauth/AdminBookingDetail";
 
 
 
 
 
-
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID; 
+const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 
 
 
@@ -69,11 +70,11 @@ const PrivateRoute = ({ children }) => {
 };
 
 const App = () => {
-  const clientId = "500698877294-jam712pdk43id3s0v5mg9k1ol2jjdl6a.apps.googleusercontent.com" //google sso client id
+
   return (
-    <PayPalScriptProvider options={{ "client-id": "Abbw-mOUb25GBacq0mna6jVOAGdre9n4QdtYDgx-AXrg7VdoBVM3Jom2adaSJiFQWdnSgeFJZES8da3H" }}>
+    <PayPalScriptProvider options={{ "client-id": paypalClientId }}>
     <Router>
-      <GoogleOAuthProvider clientId={clientId}>
+      <GoogleOAuthProvider clientId={googleClientId}>
       <Routes>
         {/* User routes */}
         <Route path="/" element={<HomePage />} />
@@ -109,6 +110,7 @@ const App = () => {
         <Route path="/worker/bookings" element={<WorkerBookings />} /> 
         <Route path="/worker/manage-bookings" element={<WorkerManageBookings />} />
         <Route path="/worker/completed-bookings" element={<WorkerCompletedBookings />} />
+        <Route path="/worker/bookingdetail/:bookingId" element={<WorkerBookingDetail />} />
         <Route path="/worker/reviews" element={<WorkerReviews />} />
         <Route path="/worker/video-call" element={<VideoCall role="worker" />} /> 
         <Route path="/worker/wallet" element={<WorkerWallet />} />
@@ -125,10 +127,9 @@ const App = () => {
         <Route path="/admin/workers" element={<WorkersList />} />
         <Route path="/admin/services/create" element={<AdminCreateService />} />
         <Route path="/admin/bookings" element={<BookingsList />} /> 
+        <Route path="/admin/bookings/:bookingId" element={<AdminBookingDetail />} />
         <Route path="/admin/reviews" element={<AdminReviews />} />
         
-
-
 
 
 

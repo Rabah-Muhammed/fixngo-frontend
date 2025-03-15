@@ -4,6 +4,8 @@ import Swal from "sweetalert2"; // SweetAlert2 for delete confirmation
 import Toast from "../../../utils/Toast"; // Import your Toast utility
 import AdminLayout from "./AdminLayout";
 import { FiEdit, FiTrash2, FiLock, FiUnlock } from "react-icons/fi"; // Import icons
+import adminApi from "../../../utils/axiosAdminInterceptor";
+
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
@@ -19,8 +21,8 @@ const UsersList = () => {
       return;
     }
 
-    axios
-      .get("http://localhost:8000/api/admin/users/", {
+    adminApi
+      .get("/api/admin/users/", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -52,7 +54,7 @@ const UsersList = () => {
       return;
     }
 
-    const url = `http://localhost:8000/api/admin/${isActive ? "block" : "unblock"}/${userId}/`;
+    const url = `${adminApi.defaults.baseURL}/api/admin/${isActive ? "block" : "unblock"}/${userId}/`;
 
     axios
       .post(url, {}, {
@@ -95,8 +97,8 @@ const UsersList = () => {
           return;
         }
 
-        axios
-          .delete(`http://localhost:8000/api/admin/delete/${userId}/`, {
+        adminApi
+          .delete(`/api/admin/delete/${userId}/`, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

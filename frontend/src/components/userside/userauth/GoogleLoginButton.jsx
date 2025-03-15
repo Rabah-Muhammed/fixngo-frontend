@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios"; // Axios for API requests
 import { loginn } from "../../../features/userSlice";
-import Toast from "../../../utils/Toast"; // Assuming you have a Toast utility for notifications
+import Toast from "../../../utils/Toast"; // 
+import apiInstance from "../../../utils/apiInstance";
 
 const GoogleLoginButton = () => {
   const dispatch = useDispatch();
@@ -16,8 +17,8 @@ const GoogleLoginButton = () => {
 
     try {
       // Send the authorization code to the backend
-      const response = await axios.post(
-        "http://localhost:8000/api/login-with-google/",
+      const response = await apiInstance.post(
+        "/api/login-with-google/",
         { code: authorizationCode }
       );
 

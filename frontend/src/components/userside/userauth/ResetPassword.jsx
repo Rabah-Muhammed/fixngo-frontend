@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../Navbar";
+import apiInstance from "../../../utils/apiInstance";
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ const ResetPassword = () => {
     }
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/reset-password/", {
+      await apiInstance.post("/api/reset-password/", {
         email,
         otp,
         password: newPassword,

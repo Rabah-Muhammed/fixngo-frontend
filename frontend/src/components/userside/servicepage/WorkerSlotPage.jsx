@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import Navbar from "../Navbar";
 import Toast from "../../../utils/Toast";
 import Footer from "../Footer";
 import { format } from "date-fns-tz";
 import { motion } from "framer-motion";
+import api from "../../../utils/axiosInterceptor";
 
 const WorkerSlotPage = () => {
   const { workerId } = useParams();
@@ -36,10 +36,10 @@ const WorkerSlotPage = () => {
 
       try {
         const [slotsResponse, serviceResponse] = await Promise.all([
-          axios.get(`http://localhost:8000/api/worker/${workerId}/slots/`, {
+          api.get(`/api/worker/${workerId}/slots/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:8000/api/services/${serviceId}/`, {
+          api.get(`/api/services/${serviceId}/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

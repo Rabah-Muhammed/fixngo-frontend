@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import Toast from "../../../../utils/Toast";
 import WorkerLayout from "../WorkerLayout";
+import workerApi from "../../../../utils/axiosWorkerInterceptor";
 
 const WorkerProfile = () => {
   const [profile, setProfile] = useState({});
@@ -12,7 +13,7 @@ const WorkerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = "http://localhost:8000";
+
 
   // Get today's date and calculate the maximum date (18+ years ago)
   const today = new Date();
@@ -22,7 +23,7 @@ const WorkerProfile = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("workerAccessToken");
-        const response = await axios.get(`${BASE_URL}/api/worker/profile/`, {
+        const response = await workerApi.get(`/api/worker/profile/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -33,14 +34,14 @@ const WorkerProfile = () => {
         setFormData({
           ...profileData,
           profile_picture: profileData.profile_picture
-            ? `${BASE_URL}${profileData.profile_picture}`
+            ? `${workerApi.defaults.baseURL}${profileData.profile_picture}`
             : null,
           gender: profileData.gender || "",
           date_of_birth: profileData.date_of_birth || "",
         });
         setImagePreview(
           profileData.profile_picture
-            ? `${BASE_URL}${profileData.profile_picture}`
+            ? `${workerApi.defaults.baseURL}${profileData.profile_picture}`
             : "default-avatar.jpg"
         );
       } catch (error) {
@@ -98,8 +99,8 @@ const WorkerProfile = () => {
 
     try {
       const token = localStorage.getItem("workerAccessToken");
-      const response = await axios.put(
-        `${BASE_URL}/api/worker/profile/`,
+      const response = await workerApi.put(
+        `/api/worker/profile/`,
         updatedFormData,
         {
           headers: {
@@ -114,12 +115,12 @@ const WorkerProfile = () => {
       setFormData({
         ...updatedProfile,
         profile_picture: updatedProfile.profile_picture
-          ? `${BASE_URL}${updatedProfile.profile_picture}`
+          ? `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`
           : null,
       });
       setImagePreview(
         updatedProfile.profile_picture
-          ? `${BASE_URL}${updatedProfile.profile_picture}`
+          ? `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`
           : "default-avatar.jpg"
       );
 

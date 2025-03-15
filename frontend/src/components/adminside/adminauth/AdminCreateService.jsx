@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
 import Swal from "sweetalert2";
+import adminApi from "../../../utils/axiosAdminInterceptor";
+
 
 const AdminCreateService = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +28,7 @@ const AdminCreateService = () => {
   const fetchServices = async () => {
     const accessToken = localStorage.getItem("adminAccessToken");
     try {
-      const response = await axios.get("http://localhost:8000/api/admin/services/", {
+      const response = await adminApi.get("/api/admin/services/", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       setServices(response.data);
@@ -73,7 +75,7 @@ const AdminCreateService = () => {
 
     try {
       if (editingService) {
-        await axios.put(`http://localhost:8000/api/admin/services/${editingService.id}/`, data, {
+        await adminApi.put(`/api/admin/services/${editingService.id}/`, data, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "multipart/form-data",
@@ -81,7 +83,7 @@ const AdminCreateService = () => {
         });
         Swal.fire("Success!", "Service updated successfully!", "success");
       } else {
-        await axios.post("http://localhost:8000/api/admin/services/", data, {
+        await adminApi.post("/api/admin/services/", data, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "multipart/form-data",
@@ -110,7 +112,7 @@ const AdminCreateService = () => {
       hourly_rate: service.hourly_rate.toString(), // Convert to string for input
       image: null,
     });
-    setImagePreview(service.image ? `http://localhost:8000${service.image}` : null);
+    setImagePreview(service.image ? `${adminApi.defaults.baseURL}${service.image}` : null);
     setShowForm(true);
     formRef.current.scrollIntoView({ behavior: "smooth" });
   };
@@ -128,7 +130,7 @@ const AdminCreateService = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:8000/api/admin/services/${serviceId}/`, {
+          await adminApi.delete(`/api/admin/services/${serviceId}/`, {
             headers: { Authorization: `Bearer ${accessToken}` },
           });
           Swal.fire("Deleted!", "The service has been removed.", "success");
@@ -177,7 +179,7 @@ const AdminCreateService = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
             <div key={service.id} className="bg-white p-4 shadow-md rounded-lg">
-              {service.image && <img src={`http://localhost:8000${service.image}`} alt={service.name} className="w-full h-40 object-cover rounded-md" />}
+              {service.image && <img src={`${adminApi.defaults.baseURL}${service.image}`} alt={service.name} className="w-full h-40 object-cover rounded-md" />}
               <h3 className="text-lg font-semibold mt-3">{service.name}</h3>
               <p className="text-gray-600 text-sm">{service.description}</p>
               <p className="text-indigo-600 font-semibold mt-2">${parseFloat(service.hourly_rate).toFixed(2)}/hr</p>

@@ -1,126 +1,129 @@
-import React, { useEffect, useState } from "react"
-import axios from "axios"
-import { motion } from "framer-motion"
-import { FiEdit2, FiSave, FiX } from "react-icons/fi"
-import Toast from "../../../utils/Toast"
-import Navbar from "../Navbar"
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FiEdit2, FiSave, FiX } from "react-icons/fi";
+import Toast from "../../../utils/Toast";
+import api from '../../../utils/axiosInterceptor'
+import Navbar from "../Navbar";
 
 const UserProfile = () => {
-  const [profile, setProfile] = useState({})
-  const [formData, setFormData] = useState({})
-  const [imagePreview, setImagePreview] = useState("")
-  const [isEditing, setIsEditing] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  const BASE_URL = "http://localhost:8000" // Replace with your backend base URL
+  const [profile, setProfile] = useState({});
+  const [formData, setFormData] = useState({});
+  const [imagePreview, setImagePreview] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("userAccessToken")
-        const response = await axios.get(`${BASE_URL}/api/profile/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const response = await api.get("/api/profile/"); // Use `api` instead of `apiInstance`
 
-        const profileData = response.data
-        setProfile(profileData)
+        const profileData = response.data;
+
+        // Construct the full URL for the profile picture using `api.defaults.baseURL`
+        const profilePictureUrl = profileData.profile_picture
+          ? `${api.defaults.baseURL}${profileData.profile_picture}`
+          : null;
+
+        setProfile(profileData);
         setFormData({
           ...profileData,
-          profile_picture: profileData.profile_picture ? `${BASE_URL}${profileData.profile_picture}` : null,
-        })
+          profile_picture: profilePictureUrl,
+        });
         setImagePreview(
-          profileData.profile_picture ? `${BASE_URL}${profileData.profile_picture}` : "default-avatar.jpg",
-        )
+          profilePictureUrl || "default-avatar.jpg"
+        );
       } catch (error) {
-        console.error("Error fetching profile:", error)
-        Toast("error", "Failed to load profile data")
+        console.error("Error fetching profile:", error);
+        Toast("error", "Failed to load profile data");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProfile()
-  }, [])
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0]
+    const selectedFile = e.target.files[0];
 
     if (selectedFile && selectedFile.size > 2 * 1024 * 1024) {
-      Toast("error", "File size must be less than 2MB.")
-      return
+      Toast("error", "File size must be less than 2MB.");
+      return;
     }
 
-    setFormData({ ...formData, profile_picture: selectedFile })
+    setFormData({ ...formData, profile_picture: selectedFile });
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onloadend = () => {
-      setImagePreview(reader.result)
-    }
+      setImagePreview(reader.result);
+    };
     if (selectedFile) {
-      reader.readAsDataURL(selectedFile)
+      reader.readAsDataURL(selectedFile);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
-    const updatedFormData = new FormData()
+    const updatedFormData = new FormData();
 
     if (!formData.profile_picture && profile.profile_picture) {
-      updatedFormData.append("profile_picture", profile.profile_picture)
+      updatedFormData.append("profile_picture", profile.profile_picture);
     } else if (formData.profile_picture instanceof File) {
-      updatedFormData.append("profile_picture", formData.profile_picture)
+      updatedFormData.append("profile_picture", formData.profile_picture);
     }
 
     Object.keys(formData).forEach((key) => {
       if (key !== "profile_picture" && formData[key]) {
-        updatedFormData.append(key, formData[key])
+        updatedFormData.append(key, formData[key]);
       }
-    })
+    });
 
     try {
-      const token = localStorage.getItem("userAccessToken")
-      const response = await axios.put(`${BASE_URL}/api/profile/`, updatedFormData, {
+      const response = await api.put("/api/profile/", updatedFormData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
-      })
+      });
 
-      const updatedProfile = response.data
-      setProfile(updatedProfile)
+      const updatedProfile = response.data;
+
+      // Construct the full URL for the updated profile picture
+      const updatedProfilePictureUrl = updatedProfile.profile_picture
+        ? `${api.defaults.baseURL}${updatedProfile.profile_picture}`
+        : null;
+
+      setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
-        profile_picture: updatedProfile.profile_picture ? `${BASE_URL}${updatedProfile.profile_picture}` : null,
-      })
+        profile_picture: updatedProfilePictureUrl,
+      });
       setImagePreview(
-        updatedProfile.profile_picture ? `${BASE_URL}${updatedProfile.profile_picture}` : "default-avatar.jpg",
-      )
+        updatedProfilePictureUrl || "default-avatar.jpg"
+      );
 
-      Toast("success", "Profile updated successfully!")
-      setIsEditing(false)
+      Toast("success", "Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
-      console.error("Error updating profile:", error.response?.data || error.message)
-      Toast("error", "Error saving changes. Please try again.")
+      console.error("Error updating profile:", error.response?.data || error.message);
+      Toast("error", "Error saving changes. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -143,7 +146,6 @@ const UserProfile = () => {
                 transition={{ duration: 0.5 }}
               />
               <h2 className="text-3xl font-bold mt-6 text-gray-800">{profile.username}</h2>
-              {/*Removed Email Display*/}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
                 {[
                   { label: "Email", value: profile.email },
@@ -275,8 +277,7 @@ const UserProfile = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserProfile
-
+export default UserProfile;

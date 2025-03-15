@@ -3,6 +3,8 @@ import axios from "axios";
 import WorkerLayout from "../workerauth/WorkerLayout";
 import Toast from "../../../utils/Toast";
 import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaPlay } from "react-icons/fa";
+import workerApi from "../../../utils/axiosWorkerInterceptor";
+
 
 const WorkerBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -13,8 +15,8 @@ const WorkerBookings = () => {
   }, []);
 
   const fetchBookings = () => {
-    axios
-      .get("http://localhost:8000/api/worker/bookings/", {
+    workerApi
+      .get("/api/worker/bookings/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => setBookings(response.data))
@@ -22,9 +24,9 @@ const WorkerBookings = () => {
   };
 
   const handleBookingAction = (bookingId, action) => {
-    axios
+    workerApi
       .patch(
-        `http://localhost:8000/api/worker/bookings/${bookingId}/`,
+        `/api/worker/bookings/${bookingId}/`,
         { status: action },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -38,9 +40,9 @@ const WorkerBookings = () => {
   };
 
   const handleStartWork = (bookingId) => {
-    axios
+    workerApi
       .patch(
-        `http://localhost:8000/api/worker/bookings/start/${bookingId}/`,
+        `/api/worker/bookings/start/${bookingId}/`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

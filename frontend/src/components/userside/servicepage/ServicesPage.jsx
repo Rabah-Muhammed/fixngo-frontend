@@ -5,6 +5,7 @@ import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../Navbar"
 import Footer from "../Footer"
+import api from "../../../utils/axiosInterceptor"
 
 const ServicesPage = () => {
   const [services, setServices] = useState([])
@@ -15,7 +16,7 @@ const ServicesPage = () => {
     const fetchServices = async () => {
       try {
         const token = localStorage.getItem("userAccessToken")
-        const response = await axios.get("http://localhost:8000/api/services/", {
+        const response = await api.get("/api/services/", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
         setServices(response.data)
@@ -67,7 +68,7 @@ const ServiceCard = ({ service, navigate }) => (
   <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl">
     <div className="relative">
       {service.image && (
-        <img src={`http://localhost:8000${service.image}`} alt={service.name} className="w-full h-40 object-cover" />
+        <img src={`${api.defaults.baseURL}${service.image}`} alt={service.name} className="w-full h-40 object-cover" />
       )}
       <div className="absolute inset-0 bg-black bg-opacity-20 transition-opacity duration-300 opacity-0 hover:opacity-100 flex items-center justify-center">
         <button

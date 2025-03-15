@@ -6,6 +6,7 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { jsPDF } from "jspdf"; // Import jsPDF
 import "jspdf-autotable"; // Import autoTable plugin
+import api from "../../../utils/axiosInterceptor";
 
 const BookingDetailPage = () => {
   const { bookingId } = useParams();
@@ -23,8 +24,8 @@ const BookingDetailPage = () => {
       }
 
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/bookings/${bookingId}/`,
+        const response = await api.get(
+          `/api/bookings/${bookingId}/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setBooking(response.data);
