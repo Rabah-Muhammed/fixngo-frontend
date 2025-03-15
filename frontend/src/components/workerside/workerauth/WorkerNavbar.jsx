@@ -51,7 +51,8 @@ const WorkerNavbar = () => {
   useEffect(() => {
     if (!isAuthenticated || !accessToken || !workerEmail) return;
 
-    const ws = new WebSocket(`ws://${workerApi.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`);
+    const ws = new WebSocket(`wss://${workerApi.defaults.baseURL.split("//")[1]}/ws/notifications/?token=${accessToken}`);
+
     
     ws.onopen = () => console.log("WorkerNavbar Notification WebSocket connected");
     ws.onmessage = (e) => {
