@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import Toast from "../../../../utils/Toast";
@@ -13,11 +12,12 @@ const WorkerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-
-
   // Get today's date and calculate the maximum date (18+ years ago)
   const today = new Date();
-  const minDate = new Date(today.setFullYear(today.getFullYear() - 18));  // 18 years ago
+  const minDate = new Date(today.setFullYear(today.getFullYear() - 18)); // 18 years ago
+
+  // Determine if we're in development mode
+  const isDevelopment = import.meta.env.MODE === 'development';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -30,22 +30,28 @@ const WorkerProfile = () => {
         });
 
         const profileData = response.data;
+        console.log("Profile Data:", profileData); // Debug log
+        console.log("Raw Profile Picture:", profileData.profile_picture); // Debug log
+
+        // Construct profile picture URL dynamically
+        const profilePictureUrl = profileData.profile_picture
+          ? (profileData.profile_picture.startsWith('http')
+              ? profileData.profile_picture // Absolute URL (S3 in production)
+              : `${workerApi.defaults.baseURL}${profileData.profile_picture}`) // Relative path (local dev)
+          : null;
+
+        console.log("Constructed Profile Picture URL:", profilePictureUrl); // Debug log
         setProfile(profileData);
         setFormData({
           ...profileData,
-          profile_picture: profileData.profile_picture
-            ? `${workerApi.defaults.baseURL}${profileData.profile_picture}`
-            : null,
+          profile_picture: profilePictureUrl,
           gender: profileData.gender || "",
           date_of_birth: profileData.date_of_birth || "",
         });
-        setImagePreview(
-          profileData.profile_picture
-            ? `${workerApi.defaults.baseURL}${profileData.profile_picture}`
-            : "default-avatar.jpg"
-        );
+        setImagePreview(profilePictureUrl || "/default-avatar.jpg");
+        console.log("Image Preview Set To:", profilePictureUrl || "/default-avatar.jpg"); // Debug log
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching profile:", error.response?.data || error.message);
         Toast("error", "Failed to load profile data");
       } finally {
         setLoading(false);
@@ -73,6 +79,7 @@ const WorkerProfile = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
+      console.log("Image Preview Updated (File):", reader.result); // Debug log
     };
     if (selectedFile) {
       reader.readAsDataURL(selectedFile);
@@ -111,38 +118,43 @@ const WorkerProfile = () => {
       );
 
       const updatedProfile = response.data;
+      console.log("Updated Profile Data:", updatedProfile); // Debug log
+
+      // Construct updated profile picture URL dynamically
+      const updatedProfilePictureUrl = updatedProfile.profile_picture
+        ? (updatedProfile.profile_picture.startsWith('http')
+            ? updatedProfile.profile_picture // Absolute URL (S3 in production)
+            : `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`) // Relative path (local dev)
+        : null;
+
+      console.log("Constructed Updated Profile Picture URL:", updatedProfilePictureUrl); // Debug log
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
-        profile_picture: updatedProfile.profile_picture
-          ? `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`
-          : null,
+        profile_picture: updatedProfilePictureUrl,
+        gender: updatedProfile.gender || "",
+        date_of_birth: updatedProfile.date_of_birth || "",
       });
-      setImagePreview(
-        updatedProfile.profile_picture
-          ? `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`
-          : "default-avatar.jpg"
-      );
+      setImagePreview(updatedProfilePictureUrl || "/default-avatar.jpg");
+      console.log("Image Preview Set To (Post-Update):", updatedProfilePictureUrl || "/default-avatar.jpg"); // Debug log
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
-      console.error(
-        "Error updating profile:",
-        error.response?.data || error.message
-      );
+      console.error("Error updating profile:", error.response?.data || error.message);
       Toast("error", "Error saving changes. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
+  }
 
   return (
     <WorkerLayout>
@@ -249,7 +261,13 @@ const WorkerProfile = () => {
                       { value: "other", label: "Other" },
                     ],
                   },
-                  { name: "date_of_birth", label: "Date of Birth", type: "date", min: "1900-01-01", max: minDate.toISOString().split("T")[0] },
+                  {
+                    name: "date_of_birth",
+                    label: "Date of Birth",
+                    type: "date",
+                    min: "1900-01-01",
+                    max: minDate.toISOString().split("T")[0],
+                  },
                 ].map((field, index) => (
                   <div key={field.name} className="flex flex-col">
                     <label
@@ -262,7 +280,7 @@ const WorkerProfile = () => {
                       <textarea
                         id={field.name}
                         name={field.name}
-                        value={formData[field.name]}
+                        value={formData[field.name] || ""}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md p-2 text-sm"
                       ></textarea>
@@ -270,7 +288,7 @@ const WorkerProfile = () => {
                       <select
                         id={field.name}
                         name={field.name}
-                        value={formData[field.name]}
+                        value={formData[field.name] || ""}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md p-2 text-sm"
                       >
@@ -286,7 +304,7 @@ const WorkerProfile = () => {
                         id={field.name}
                         name={field.name}
                         type={field.type}
-                        value={formData[field.name]}
+                        value={formData[field.name] || ""}
                         onChange={handleChange}
                         className="border border-gray-300 rounded-md p-2 text-sm"
                         max={field.max}
