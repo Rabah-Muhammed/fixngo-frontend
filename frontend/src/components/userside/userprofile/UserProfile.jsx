@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import Toast from "../../../utils/Toast";
-import api from '../../../utils/axiosInterceptor';
+import api from '../../../utils/axiosInterceptor'
 import Navbar from "../Navbar";
 
 const UserProfile = () => {
@@ -15,18 +15,23 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get("/api/profile/");
+        const response = await api.get("/api/profile/"); // Use `api` instead of `apiInstance`
+
         const profileData = response.data;
 
-        // Use the profile_picture URL directly from the backend
-        const profilePictureUrl = profileData.profile_picture || null;
+        // Construct the full URL for the profile picture using `api.defaults.baseURL`
+        const profilePictureUrl = profileData.profile_picture
+          ? `${api.defaults.baseURL}${profileData.profile_picture}`
+          : null;
 
         setProfile(profileData);
         setFormData({
           ...profileData,
-          profile_picture: profilePictureUrl, // Store the full URL or null
+          profile_picture: profilePictureUrl,
         });
-        setImagePreview(profilePictureUrl || "default-avatar.jpg");
+        setImagePreview(
+          profilePictureUrl || "default-avatar.jpg"
+        );
       } catch (error) {
         console.error("Error fetching profile:", error);
         Toast("error", "Failed to load profile data");
@@ -89,15 +94,19 @@ const UserProfile = () => {
 
       const updatedProfile = response.data;
 
-      // Use the updated profile_picture URL directly from the backend
-      const updatedProfilePictureUrl = updatedProfile.profile_picture || null;
+      // Construct the full URL for the updated profile picture
+      const updatedProfilePictureUrl = updatedProfile.profile_picture
+        ? `${api.defaults.baseURL}${updatedProfile.profile_picture}`
+        : null;
 
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
         profile_picture: updatedProfilePictureUrl,
       });
-      setImagePreview(updatedProfilePictureUrl || "default-avatar.jpg");
+      setImagePreview(
+        updatedProfilePictureUrl || "default-avatar.jpg"
+      );
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);
@@ -236,6 +245,7 @@ const UserProfile = () => {
                       value={formData[field.name] || ""}
                       onChange={handleChange}
                       className="w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300"
+                      disabled={field.disabled}
                     />
                   )}
                 </motion.div>
