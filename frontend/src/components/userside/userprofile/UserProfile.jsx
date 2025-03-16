@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import Toast from "../../../utils/Toast";
-import api from '../../../utils/axiosInterceptor'
+import api from '../../../utils/axiosInterceptor';
 import Navbar from "../Navbar";
 
 const UserProfile = () => {
@@ -15,26 +15,24 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get("/api/profile/"); // Use `api` instead of `apiInstance`
-
+        const response = await api.get("/api/profile/");
         const profileData = response.data;
 
-        // Construct the full URL for the profile picture using `api.defaults.baseURL`
-        const profilePictureUrl = profileData.profile_picture
-          ? `${api.defaults.baseURL}${profileData.profile_picture}`
-          : null;
-
+        // Use the raw S3 URL directly from the backend
+        const profilePictureUrl = profileData.profile_picture || null;
         setProfile(profileData);
         setFormData({
           ...profileData,
           profile_picture: profilePictureUrl,
         });
-        setImagePreview(
-          profilePictureUrl || "default-avatar.jpg"
-        );
+        setImagePreview(profilePictureUrl || "/default-avatar.jpg");
       } catch (error) {
-        console.error("Error fetching profile:", error);
-        Toast("error", "Failed to load profile data");
+        console.error("Error fetching profile:", error.response?.data || error.message);
+        if (error.response?.status === 401) {
+          Toast("error", "Please log in to view your profile.");
+        } else {
+          Toast("error", "Failed to load profile data");
+        }
       } finally {
         setLoading(false);
       }
@@ -50,21 +48,14 @@ const UserProfile = () => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-
     if (selectedFile && selectedFile.size > 2 * 1024 * 1024) {
       Toast("error", "File size must be less than 2MB.");
       return;
     }
-
     setFormData({ ...formData, profile_picture: selectedFile });
-
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    if (selectedFile) {
-      reader.readAsDataURL(selectedFile);
-    }
+    reader.onloadend = () => setImagePreview(reader.result);
+    if (selectedFile) reader.readAsDataURL(selectedFile);
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +63,6 @@ const UserProfile = () => {
     setLoading(true);
 
     const updatedFormData = new FormData();
-
     if (!formData.profile_picture && profile.profile_picture) {
       updatedFormData.append("profile_picture", profile.profile_picture);
     } else if (formData.profile_picture instanceof File) {
@@ -87,43 +77,40 @@ const UserProfile = () => {
 
     try {
       const response = await api.put("/api/profile/", updatedFormData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
       const updatedProfile = response.data;
 
-      // Construct the full URL for the updated profile picture
-      const updatedProfilePictureUrl = updatedProfile.profile_picture
-        ? `${api.defaults.baseURL}${updatedProfile.profile_picture}`
-        : null;
-
+      // Use the raw S3 URL directly from the backend
+      const updatedProfilePictureUrl = updatedProfile.profile_picture || null;
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
         profile_picture: updatedProfilePictureUrl,
       });
-      setImagePreview(
-        updatedProfilePictureUrl || "default-avatar.jpg"
-      );
+      setImagePreview(updatedProfilePictureUrl || "/default-avatar.jpg");
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error.response?.data || error.message);
-      Toast("error", "Error saving changes. Please try again.");
+      if (error.response?.status === 401) {
+        Toast("error", "Please log in to update your profile.");
+      } else {
+        Toast("error", "Error saving changes. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
+  }
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -194,11 +181,7 @@ const UserProfile = () => {
                     name="profile_picture"
                     type="file"
                     onChange={handleFileChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-                               file:rounded-full file:border-0
-                               file:text-sm file:font-semibold
-                               file:bg-blue-50 file:text-blue-700
-                               hover:file:bg-blue-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     accept="image/png, image/jpeg"
                   />
                 </label>
