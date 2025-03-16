@@ -20,9 +20,9 @@ const UserProfile = () => {
         const profileData = response.data;
 
         // Construct the full URL for the profile picture using `api.defaults.baseURL`
-        const profilePictureUrl = profileData.profile_picture?.startsWith("http")
-        ? profileData.profile_picture
-        : `${api.defaults.baseURL}${profileData.profile_picture}`;
+        const profilePictureUrl = profileData.profile_picture
+          ? `${api.defaults.baseURL}${profileData.profile_picture}`
+          : null;
 
         setProfile(profileData);
         setFormData({
@@ -95,10 +95,9 @@ const UserProfile = () => {
       const updatedProfile = response.data;
 
       // Construct the full URL for the updated profile picture
-      const updatedProfilePictureUrl = updatedProfile.profile_picture?.startsWith("http")
-      ? updatedProfile.profile_picture
-      : `${api.defaults.baseURL}${updatedProfile.profile_picture}`;
-    
+      const updatedProfilePictureUrl = updatedProfile.profile_picture
+        ? `${api.defaults.baseURL}${updatedProfile.profile_picture}`
+        : null;
 
       setProfile(updatedProfile);
       setFormData({
