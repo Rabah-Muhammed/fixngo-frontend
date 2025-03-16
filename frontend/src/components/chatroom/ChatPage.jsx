@@ -1,16 +1,18 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
 import { useSelector } from "react-redux";
+import axios from "axios";
 import Toast from "../../utils/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa";
 import ChatSidebar from "./ChatSidebar";
 import apiInstance from "../../utils/apiInstance";
 
+
 const ChatPage = () => {
   const { chatId: initialChatId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // Get navigation state
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
@@ -21,7 +23,7 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [activeChatId, setActiveChatId] = useState(initialChatId);
-  const workerId = location.state?.workerId;
+  const workerId = location.state?.workerId; // Get workerId from state
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -38,7 +40,9 @@ const ChatPage = () => {
 
     const fetchParticipantUsername = async (chatId) => {
       try {
-        const response = await apiInstance.get(`/api/chat/rooms/`);
+        const response = await apiInstance.get(`/api/chat/rooms/`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         const room = response.data.find((r) => r.id === parseInt(chatId));
         if (room) {
           setParticipantUsername(room.participant); // Worker’s username
@@ -46,7 +50,7 @@ const ChatPage = () => {
           setParticipantUsername("Unknown");
         }
       } catch (error) {
-        console.error("Failed to fetch participant username:", error.response?.data || error.message);
+        console.error("Failed to fetch participant username:", error);
         setParticipantUsername("Unknown");
       }
     };
@@ -138,15 +142,15 @@ const ChatPage = () => {
 
   const handleChatSelect = (chatId) => {
     setActiveChatId(chatId);
-    navigate(`/chat/${chatId}`, { state: { workerId } });
+    navigate(`/chat/${chatId}`, { state: { workerId } }); // Preserve workerId in navigation
   };
 
   const handleBack = () => {
     if (workerId) {
-      navigate(`/worker/${workerId}/visit`);
+      navigate(`/worker/${workerId}/visit`); // Navigate back to VisitWorker page
     } else {
       Toast("error", "Worker ID not available.");
-      navigate("/services");
+      navigate("/services"); // Fallback
     }
   };
 
@@ -182,57 +186,42 @@ const ChatPage = () => {
         <div className="flex-1 p-6 overflow-y-auto bg-white space-y-4">
           {activeChatId ? (
             <AnimatePresence>
-              {messages.map((msg) => {
-                // Dynamically construct the message image URL
-                const messageImageUrl = msg.image
-                  ? (msg.image.startsWith('http')
-                      ? msg.image // Absolute URL (S3 in production)
-                      : `${apiInstance.defaults.baseURL}${msg.image}`) // Relative path (local dev)
-                  : null;
-
-
-
-                return (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className={`flex ${msg.sender === userEmail ? "justify-end" : "justify-start"}`}
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex ${msg.sender === userEmail ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[70%] p-4 rounded-3xl shadow-xl ${
+                      msg.sender === userEmail
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                        : "bg-gray-100 text-gray-800 border border-gray-200"
+                    }`}
                   >
-                    <div
-                      className={`max-w-[70%] p-4 rounded-3xl shadow-xl ${
-                        msg.sender === userEmail
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                          : "bg-gray-100 text-gray-800 border border-gray-200"
-                      }`}
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-xs font-medium text-black mb-1">
-                          {msg.sender === userEmail ? "You" : participantUsername || "Unknown"}
-                        </span>
-                        {msg.content && <span className="text-sm font-light">{msg.content}</span>}
-                        {messageImageUrl && (
-                          <img
-                            src={messageImageUrl}
-                            alt="Shared image"
-                            className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
-                            onClick={() => window.open(messageImageUrl, "_blank")}
-                          />
-                        )}
-                        <span className="text-xs opacity-70 mt-2">
-                          {new Date(msg.timestamp).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
-                        </span>
-                      </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-black mb-1">
+                        {msg.sender === userEmail ? "You" : participantUsername || "Unknown"}
+                      </span>
+                      {msg.content && <span className="text-sm font-light">{msg.content}</span>}
+                      {msg.image && (
+                        <img
+                          src={`${apiInstance.defaults.baseURL}${msg.image}`}
+                          alt="Shared image"
+                          className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
+                          onClick={() => window.open(`${apiInstance.defaults.baseURL}${msg.image}`, "_blank")}
+                        />
+                      )}
+                      <span className="text-xs opacity-70 mt-2">
+                        {new Date(msg.timestamp).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+                      </span>
                     </div>
-                  </motion.div>
-                );
-              })}
+                  </div>
+                </motion.div>
+              ))}
             </AnimatePresence>
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500">
