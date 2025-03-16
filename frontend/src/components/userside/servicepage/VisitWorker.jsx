@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,21 +17,22 @@ const VisitWorker = () => {
   const { accessToken } = useSelector((state) => state.user);
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchWorkerProfile = async () => {
+      if (!accessToken) {
+        Toast("error", "You need to be logged in to view worker profiles.");
+        navigate("/login");
+        return;
+      }
+
       try {
-        if (!accessToken) {
-          setError("Please log in to view worker profiles.");
-          navigate("/login");
-          return;
-        }
         const response = await api.get(`/api/worker/${workerId}/`);
         console.log("Worker Profile Response:", response.data); // Debug log
         setWorker(response.data);
       } catch (error) {
-        setError("Failed to load worker profile: " + (error.response?.data?.detail || error.message));
+        console.error("Failed to load worker profile:", error.response?.data || error.message);
+        Toast("error", "Failed to load worker profile. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -47,10 +50,7 @@ const VisitWorker = () => {
       }
 
       console.log("Attempting to start chat with Worker ID:", workerId); // Debug log
-      const response = await api.post(
-        `/api/chat/start-chat/`,
-        { worker_id: workerId }
-      );
+      const response = await api.post(`/api/chat/start-chat/`, { worker_id: workerId });
 
       console.log("Chat started successfully:", response.data); // Debug log
       if (response.data.user_email) {
@@ -62,7 +62,6 @@ const VisitWorker = () => {
           })
         );
       }
-      // Pass workerId to ChatPage via state
       navigate(`/chat/${response.data.chat_id}`, { state: { workerId } });
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message;
@@ -72,7 +71,12 @@ const VisitWorker = () => {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error || !worker) return <NoWorkerFound error={error} />;
+
+  if (!worker) {
+    return (
+      <NoWorkerFound navigate={navigate} />
+    );
+  }
 
   // Dynamically construct the profile picture URL
   const profilePictureUrl = worker.profile_picture
@@ -81,7 +85,8 @@ const VisitWorker = () => {
         : `${api.defaults.baseURL}${worker.profile_picture}`) // Relative path (local dev)
     : "/default-avatar.png";
 
-
+  console.log("Profile Picture (Raw):", worker.profile_picture); // Debug log
+  console.log("Profile Picture (Constructed):", profilePictureUrl); // Debug log
 
   return (
     <div className="bg-gradient-to-br from-indigo-100 via-white to-indigo-100 min-h-screen">
@@ -164,15 +169,28 @@ const DetailRow = ({ label, value }) => (
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div>
   </div>
 );
 
-const NoWorkerFound = ({ error }) => (
-  <div className="flex flex-col justify-center items-center h-screen">
-    <h2 className="text-3xl font-bold text-gray-800">Worker Not Found</h2>
-    <p className="text-lg text-gray-600">{error || "The worker profile you're looking for does not exist."}</p>
-  </div>
+const NoWorkerFound = ({ navigate }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5 }}
+    className="text-center p-12 bg-white rounded-lg shadow-xl max-w-2xl mx-auto mt-16"
+  >
+    <h3 className="text-3xl font-semibold text-gray-800 mb-4">Worker Not Found</h3>
+    <p className="text-lg text-gray-600 mb-8">The worker profile you're looking for does not exist.</p>
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => navigate("/services")}
+      className="px-6 py-3 bg-indigo-600 text-white rounded-full text-lg font-medium transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      Go Back to Services
+    </motion.button>
+  </motion.div>
 );
 
 export default VisitWorker;
