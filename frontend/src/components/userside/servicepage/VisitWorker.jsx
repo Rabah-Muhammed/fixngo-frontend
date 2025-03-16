@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { motion } from "framer-motion";
 import Toast from "../../../utils/Toast";
 import { loginn } from "../../../features/userSlice";
 import api from "../../../utils/axiosInterceptor";
-
-
 
 const VisitWorker = () => {
   const { workerId } = useParams();
@@ -28,10 +25,8 @@ const VisitWorker = () => {
           navigate("/login");
           return;
         }
-        const response = await api.get(`${api.defaults.baseURL}/api/worker/${workerId}/`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        console.log("Worker Profile Response:", response.data);
+        const response = await api.get(`/api/worker/${workerId}/`);
+        console.log("Worker Profile Response:", response.data); // Debug log
         setWorker(response.data);
       } catch (error) {
         setError("Failed to load worker profile: " + (error.response?.data?.detail || error.message));
@@ -51,20 +46,21 @@ const VisitWorker = () => {
         return;
       }
 
-      console.log("Attempting to start chat with Worker ID:", workerId);
+      console.log("Attempting to start chat with Worker ID:", workerId); // Debug log
       const response = await api.post(
-        `${api.defaults.baseURL}/api/chat/start-chat/`,
-        { worker_id: workerId },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        `/api/chat/start-chat/`,
+        { worker_id: workerId }
       );
 
-      console.log("Chat started successfully:", response.data);
+      console.log("Chat started successfully:", response.data); // Debug log
       if (response.data.user_email) {
-        dispatch(loginn({
-          user: { email: response.data.user_email },
-          accessToken: accessToken,
-          refreshToken: null,
-        }));
+        dispatch(
+          loginn({
+            user: { email: response.data.user_email },
+            accessToken: accessToken,
+            refreshToken: null,
+          })
+        );
       }
       // Pass workerId to ChatPage via state
       navigate(`/chat/${response.data.chat_id}`, { state: { workerId } });
@@ -78,6 +74,15 @@ const VisitWorker = () => {
   if (loading) return <LoadingSpinner />;
   if (error || !worker) return <NoWorkerFound error={error} />;
 
+  // Dynamically construct the profile picture URL
+  const profilePictureUrl = worker.profile_picture
+    ? (worker.profile_picture.startsWith('http')
+        ? worker.profile_picture // Absolute URL (S3 in production)
+        : `${api.defaults.baseURL}${worker.profile_picture}`) // Relative path (local dev)
+    : "/default-avatar.png";
+
+
+
   return (
     <div className="bg-gradient-to-br from-indigo-100 via-white to-indigo-100 min-h-screen">
       <Navbar />
@@ -90,7 +95,7 @@ const VisitWorker = () => {
         >
           <div className="flex flex-col items-center">
             <img
-              src={worker.profile_picture ? `${api.defaults.baseURL}${worker.profile_picture}` : "/default-avatar.png"}
+              src={profilePictureUrl}
               alt={worker.username}
               className="w-28 h-28 rounded-full object-cover border-4 border-transparent shadow-lg"
             />
@@ -100,9 +105,19 @@ const VisitWorker = () => {
           <div className="mt-6 space-y-4 text-left">
             <DetailRow label="Email" value={worker.user_email} />
             <DetailRow label="Phone" value={worker.phone_number || "Not Provided"} />
-            <DetailRow label="Gender" value={worker.gender ? worker.gender.charAt(0).toUpperCase() + worker.gender.slice(1) : "Not Specified"} />
+            <DetailRow
+              label="Gender"
+              value={
+                worker.gender
+                  ? worker.gender.charAt(0).toUpperCase() + worker.gender.slice(1)
+                  : "Not Specified"
+              }
+            />
             <DetailRow label="Completed Jobs" value={worker.completed_jobs} />
-            <DetailRow label="Availability" value={worker.availability_status ? "✅ Available" : "❌ Not Available"} />
+            <DetailRow
+              label="Availability"
+              value={worker.availability_status ? "✅ Available" : "❌ Not Available"}
+            />
             <DetailRow label="Service Area" value={worker.service_area || "Not Specified"} />
           </div>
 

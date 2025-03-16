@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import Navbar from "../Navbar";
 import Toast from "../../../utils/Toast";
 import Footer from "../Footer";
 import { motion } from "framer-motion";
-import ServiceReviews from "../reviewrating/ServiceReviews"; 
+import ServiceReviews from "../reviewrating/ServiceReviews";
 import api from "../../../utils/axiosInterceptor";
-
-
 
 const ServiceDetailPage = () => {
   const { serviceId } = useParams();
@@ -29,12 +26,11 @@ const ServiceDetailPage = () => {
       }
 
       try {
-        const response = await api.get(`${api.defaults.baseURL}/api/services/${serviceId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api.get(`/api/services/${serviceId}/`);
+        console.log("Service Response:", response.data); // Debug log
         setService(response.data);
       } catch (error) {
-        console.error("Failed to load service details.", error);
+        console.error("Failed to load service details:", error.response?.data || error.message);
         Toast("error", "Failed to load service details. Please try again.");
       } finally {
         setLoading(false);
@@ -47,6 +43,15 @@ const ServiceDetailPage = () => {
   if (loading) return <LoadingSpinner />;
   if (!service) return <ServiceNotFound />;
 
+  // Dynamically construct the service image URL
+  const serviceImageUrl = service.image
+    ? (service.image.startsWith('http')
+        ? service.image // Absolute URL (S3 in production)
+        : `${api.defaults.baseURL}${service.image}`) // Relative path (local dev)
+    : null;
+
+
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
       <Navbar />
@@ -57,10 +62,10 @@ const ServiceDetailPage = () => {
           transition={{ duration: 0.5 }}
           className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden"
         >
-          {service.image && (
+          {serviceImageUrl && (
             <div className="relative h-80 overflow-hidden">
               <img
-                src={`${api.defaults.baseURL}${service.image}`}
+                src={serviceImageUrl}
                 alt={service.name}
                 className="w-full h-full object-cover"
               />

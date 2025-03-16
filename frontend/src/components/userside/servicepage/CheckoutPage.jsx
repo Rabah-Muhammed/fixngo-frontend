@@ -4,13 +4,10 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { format } from "date-fns";
-import axios from "axios";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import Toast from "../../../utils/Toast";
 import api from "../../../utils/axiosInterceptor";
-
-
 
 const CheckoutPage = () => {
   const location = useLocation();
@@ -45,9 +42,7 @@ const CheckoutPage = () => {
       try {
         let slotData = slot;
         if (bookingId && !slot) {
-          const bookingRes = await api.get(`${api.defaults.baseURL}/api/bookings/${bookingId}/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const bookingRes = await api.get(`/api/bookings/${bookingId}/`);
           slotData = {
             id: bookingRes.data.slot,
             start_time: bookingRes.data.start_time,
@@ -56,20 +51,10 @@ const CheckoutPage = () => {
         }
 
         const [serviceRes, workerRes, platformFeeRes, bookingRes] = await Promise.all([
-          api.get(`${api.defaults.baseURL}/api/services/${serviceId}/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get(`${api.defaults.baseURL}/api/workers/${workerId}/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get(`${api.defaults.baseURL}/api/platform-fee/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          isRemainingPayment
-            ? api.get(`${api.defaults.baseURL}/api/bookings/${bookingId}/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              })
-            : null,
+          api.get(`/api/services/${serviceId}/`),
+          api.get(`/api/workers/${workerId}/`),
+          api.get(`/api/platform-fee/`),
+          isRemainingPayment ? api.get(`/api/bookings/${bookingId}/`) : null,
         ]);
 
         const serviceData = serviceRes.data;
@@ -93,7 +78,7 @@ const CheckoutPage = () => {
           setRemainingBalance(remainingAmount.toFixed(2));
         }
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error("Fetch error:", error.response?.data || error.message);
         Toast("error", "Failed to load details.");
         navigate("/");
       } finally {
@@ -116,13 +101,7 @@ const CheckoutPage = () => {
       let paymentType = "Platform Fee";
 
       if (isRemainingPayment) {
-        await api.patch(
-          `${api.defaults.baseURL}/api/bookings/${bookingId}/pay-remaining/`,
-          {},
-          {
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          }
-        );
+        await api.patch(`/api/bookings/${bookingId}/pay-remaining/`, {});
         paymentType = "Remaining Balance";
         Toast("success", "Remaining balance paid successfully! Booking is now completed.");
       } else {
@@ -133,10 +112,7 @@ const CheckoutPage = () => {
           transaction_id: details.id,
         };
 
-        await api.post(`${api.defaults.baseURL}/api/bookings/`, bookingData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        });
-
+        await api.post(`/api/bookings/`, bookingData);
         Toast("success", "Booking confirmed! You will need to pay the remaining balance to the worker later.");
       }
 
@@ -157,9 +133,16 @@ const CheckoutPage = () => {
     );
   }
 
-  const serviceImage = service?.image ? `${api.defaults.baseURL}${service.image}` : "/default-service.png";
-  const workerName = worker?.username || "Unknown Worker";
+  // Dynamically construct the service image URL
+  const serviceImageUrl = service?.image
+    ? (service.image.startsWith('http')
+        ? service.image // Absolute URL (S3 in production)
+        : `${api.defaults.baseURL}${service.image}`) // Relative path (local dev)
+    : "/default-service.png";
 
+
+
+  const workerName = worker?.username || "Unknown Worker";
   const startTime = slot?.start_time ? new Date(slot.start_time) : null;
   const endTime = slot?.end_time ? new Date(slot.end_time) : null;
   const formattedTime =
@@ -179,7 +162,7 @@ const CheckoutPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="flex justify-center">
               <img
-                src={serviceImage}
+                src={serviceImageUrl}
                 alt="Service"
                 className="w-full max-w-md h-72 object-cover rounded-xl shadow-md transition-transform duration-300 transform hover:scale-105"
               />

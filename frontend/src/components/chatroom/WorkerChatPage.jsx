@@ -1,14 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import Toast from "../../utils/Toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa"; // Added FaArrowLeft
+import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa";
 import ChatSidebar from "./ChatSidebar";
-import apiInstance from "../../utils/apiInstance"
-
-
+import apiInstance from "../../utils/apiInstance";
 
 const WorkerChatPage = () => {
   const { chatId: initialChatId } = useParams();
@@ -39,14 +36,12 @@ const WorkerChatPage = () => {
 
     const fetchParticipantUsername = async (chatId) => {
       try {
-        const response = await apiInstance.get(`/api/chat/rooms/`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const response = await apiInstance.get(`/api/chat/rooms/`);
         const room = response.data.find((r) => r.id === parseInt(chatId));
         if (room) setParticipantUsername(room.participant);
         else setParticipantUsername("Unknown");
       } catch (error) {
-        console.error("Failed to fetch participant username:", error);
+        console.error("Failed to fetch participant username:", error.response?.data || error.message);
         setParticipantUsername("Unknown");
       }
     };
@@ -68,15 +63,22 @@ const WorkerChatPage = () => {
         const data = JSON.parse(e.data);
         console.log("WebSocket message received:", data);
         if (data.messages) {
-          setMessages(data.messages.map(msg => {
-            const isSent = msg.sender.toLowerCase() === workerEmail?.toLowerCase();
-            console.log(`Message ID: ${msg.id}, Sender: "${msg.sender}", Worker Email: "${workerEmail}", Is Sent: ${isSent}`);
-            return msg;
-          }));
+          setMessages(
+            data.messages.map((msg) => {
+              const isSent = msg.sender.toLowerCase() === workerEmail?.toLowerCase();
+              console.log(
+                `Message ID: ${msg.id}, Sender: "${msg.sender}", Worker Email: "${workerEmail}", Is Sent: ${isSent}`
+              );
+              return msg;
+            })
+          );
           setTimeout(scrollToBottom, 100);
         } else if (data.message || data.image) {
           setMessages((prev) => {
-            const updatedMessages = [...prev, { id: data.id, sender: data.sender, content: data.message, image: data.image, timestamp: data.timestamp }];
+            const updatedMessages = [
+              ...prev,
+              { id: data.id, sender: data.sender, content: data.message, image: data.image, timestamp: data.timestamp },
+            ];
             setTimeout(scrollToBottom, 100);
             return updatedMessages;
           });
@@ -111,10 +113,12 @@ const WorkerChatPage = () => {
       if (selectedImage) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          socket.send(JSON.stringify({
-            message: newMessage,
-            image: reader.result,
-          }));
+          socket.send(
+            JSON.stringify({
+              message: newMessage,
+              image: reader.result,
+            })
+          );
           setSelectedImage(null);
           setNewMessage("");
           setTimeout(scrollToBottom, 100);
@@ -181,42 +185,57 @@ const WorkerChatPage = () => {
         <div className="flex-1 p-6 overflow-y-auto bg-white space-y-4">
           {activeChatId ? (
             <AnimatePresence>
-              {messages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex ${msg.sender === workerEmail ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[70%] p-4 rounded-3xl shadow-xl ${
-                      msg.sender === workerEmail
-                        ?  "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                        : "bg-gray-100 text-gray-800 border border-gray-200"
-                    }`}
+              {messages.map((msg) => {
+                // Dynamically construct the message image URL
+                const messageImageUrl = msg.image
+                  ? (msg.image.startsWith('http')
+                      ? msg.image // Absolute URL (S3 in production)
+                      : `${apiInstance.defaults.baseURL}${msg.image}`) // Relative path (local dev)
+                  : null;
+
+
+
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className={`flex ${msg.sender === workerEmail ? "justify-end" : "justify-start"}`}
                   >
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium text-black mb-1">
-                        {msg.sender === workerEmail ? "You" : participantUsername || "Unknown"}
-                      </span>
-                      {msg.content && <span className="text-sm font-light">{msg.content}</span>}
-                      {msg.image && (
-                        <img
-                          src={`${apiInstance.defaults.baseURL}${msg.image}`}
-                          alt="Shared image"
-                          className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
-                          onClick={() => window.open(`${apiInstance.defaults.baseURL}${msg.image}`, "_blank")}
-                        />
-                      )}
-                      <span className="text-xs opacity-70 mt-2">
-                        {new Date(msg.timestamp).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
-                      </span>
+                    <div
+                      className={`max-w-[70%] p-4 rounded-3xl shadow-xl ${
+                        msg.sender === workerEmail
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                          : "bg-gray-100 text-gray-800 border border-gray-200"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-black mb-1">
+                          {msg.sender === workerEmail ? "You" : participantUsername || "Unknown"}
+                        </span>
+                        {msg.content && <span className="text-sm font-light">{msg.content}</span>}
+                        {messageImageUrl && (
+                          <img
+                            src={messageImageUrl}
+                            alt="Shared image"
+                            className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
+                            onClick={() => window.open(messageImageUrl, "_blank")}
+                          />
+                        )}
+                        <span className="text-xs opacity-70 mt-2">
+                          {new Date(msg.timestamp).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500">
