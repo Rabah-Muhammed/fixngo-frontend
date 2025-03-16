@@ -28,7 +28,7 @@ const VisitWorker = () => {
 
       try {
         const response = await api.get(`/api/worker/${workerId}/`);
-        console.log("Worker Profile Response:", response.data); // Debug log
+        console.log("Worker Profile Response:", response.data);
         setWorker(response.data);
       } catch (error) {
         console.error("Failed to load worker profile:", error.response?.data || error.message);
@@ -49,10 +49,10 @@ const VisitWorker = () => {
         return;
       }
 
-      console.log("Attempting to start chat with Worker ID:", workerId); // Debug log
+      console.log("Attempting to start chat with Worker ID:", workerId);
       const response = await api.post(`/api/chat/start-chat/`, { worker_id: workerId });
 
-      console.log("Chat started successfully:", response.data); // Debug log
+      console.log("Chat started successfully:", response.data);
       if (response.data.user_email) {
         dispatch(
           loginn({
@@ -73,20 +73,20 @@ const VisitWorker = () => {
   if (loading) return <LoadingSpinner />;
 
   if (!worker) {
-    return (
-      <NoWorkerFound navigate={navigate} />
-    );
+    return <NoWorkerFound navigate={navigate} />;
   }
 
   // Dynamically construct the profile picture URL
   const profilePictureUrl = worker.profile_picture
     ? (worker.profile_picture.startsWith('http')
-        ? worker.profile_picture // Absolute URL (S3 in production)
+        ? worker.profile_picture // Full absolute URL (e.g., https://fixngo-media.s3...)
+        : worker.profile_picture.includes('s3.')
+        ? `https://${worker.profile_picture}` // Fix incomplete S3 URL (e.g., fixngo-media.s3...)
         : `${api.defaults.baseURL}${worker.profile_picture}`) // Relative path (local dev)
     : "/default-avatar.png";
 
-  console.log("Profile Picture (Raw):", worker.profile_picture); // Debug log
-  console.log("Profile Picture (Constructed):", profilePictureUrl); // Debug log
+  console.log("Profile Picture (Raw):", worker.profile_picture);
+  console.log("Profile Picture (Constructed):", profilePictureUrl);
 
   return (
     <div className="bg-gradient-to-br from-indigo-100 via-white to-indigo-100 min-h-screen">
