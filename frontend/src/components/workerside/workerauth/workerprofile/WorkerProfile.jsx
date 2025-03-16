@@ -21,8 +21,7 @@ const WorkerProfile = () => {
       try {
         const response = await workerApi.get(`/api/worker/profile/`);
         const profileData = response.data;
-        console.log("Profile Data:", profileData); // Debug log
-        console.log("Raw Profile Picture:", profileData.profile_picture); // Debug log
+
 
         // Construct profile picture URL dynamically
         const profilePictureUrl = profileData.profile_picture
@@ -68,7 +67,7 @@ const WorkerProfile = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
-      console.log("Image Preview Updated (File):", reader.result); // Debug log
+     
     };
     if (selectedFile) reader.readAsDataURL(selectedFile);
   };
@@ -95,7 +94,7 @@ const WorkerProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const updatedProfile = response.data;
-      console.log("Updated Profile Data:", updatedProfile); // Debug log
+      
 
       // Construct updated profile picture URL dynamically
       const updatedProfilePictureUrl = updatedProfile.profile_picture
@@ -104,7 +103,7 @@ const WorkerProfile = () => {
             : `${workerApi.defaults.baseURL}${updatedProfile.profile_picture}`) // Relative path (local dev)
         : null;
 
-      console.log("Constructed Updated Profile Picture URL:", updatedProfilePictureUrl); // Debug log
+      
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
@@ -114,7 +113,7 @@ const WorkerProfile = () => {
         availability_status: updatedProfile.availability_status !== undefined ? updatedProfile.availability_status : false,
       });
       setImagePreview(updatedProfilePictureUrl || "/default-avatar.jpg");
-      console.log("Image Preview Set To (Post-Update):", updatedProfilePictureUrl || "/default-avatar.jpg"); // Debug log
+      
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);

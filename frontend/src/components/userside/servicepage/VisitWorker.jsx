@@ -98,6 +98,10 @@ const VisitWorker = () => {
               src={profilePictureUrl}
               alt={worker.username}
               className="w-28 h-28 rounded-full object-cover border-4 border-transparent shadow-lg"
+              onError={(e) => {
+                console.error("Profile picture failed to load:", profilePictureUrl);
+                e.target.src = "/default-avatar.png"; // Fallback to default image
+              }}
             />
             <h2 className="text-3xl font-extrabold text-gray-900 mt-4">{worker.username}</h2>
           </div>

@@ -4,11 +4,9 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import Toast from "../../utils/Toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa"; // Added FaArrowLeft
+import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa";
 import ChatSidebar from "./ChatSidebar";
-import apiInstance from "../../utils/apiInstance"
-
-
+import apiInstance from "../../utils/apiInstance";
 
 const WorkerChatPage = () => {
   const { chatId: initialChatId } = useParams();
@@ -68,15 +66,20 @@ const WorkerChatPage = () => {
         const data = JSON.parse(e.data);
         console.log("WebSocket message received:", data);
         if (data.messages) {
-          setMessages(data.messages.map(msg => {
-            const isSent = msg.sender.toLowerCase() === workerEmail?.toLowerCase();
-            console.log(`Message ID: ${msg.id}, Sender: "${msg.sender}", Worker Email: "${workerEmail}", Is Sent: ${isSent}`);
-            return msg;
-          }));
+          setMessages(
+            data.messages.map((msg) => {
+              const isSent = msg.sender.toLowerCase() === workerEmail?.toLowerCase();
+              console.log(`Message ID: ${msg.id}, Sender: "${msg.sender}", Worker Email: "${workerEmail}", Is Sent: ${isSent}`);
+              return msg;
+            })
+          );
           setTimeout(scrollToBottom, 100);
         } else if (data.message || data.image) {
           setMessages((prev) => {
-            const updatedMessages = [...prev, { id: data.id, sender: data.sender, content: data.message, image: data.image, timestamp: data.timestamp }];
+            const updatedMessages = [
+              ...prev,
+              { id: data.id, sender: data.sender, content: data.message, image: data.image, timestamp: data.timestamp },
+            ];
             setTimeout(scrollToBottom, 100);
             return updatedMessages;
           });
@@ -111,10 +114,12 @@ const WorkerChatPage = () => {
       if (selectedImage) {
         const reader = new FileReader();
         reader.onloadend = () => {
-          socket.send(JSON.stringify({
-            message: newMessage,
-            image: reader.result,
-          }));
+          socket.send(
+            JSON.stringify({
+              message: newMessage,
+              image: reader.result,
+            })
+          );
           setSelectedImage(null);
           setNewMessage("");
           setTimeout(scrollToBottom, 100);
@@ -193,7 +198,7 @@ const WorkerChatPage = () => {
                   <div
                     className={`max-w-[70%] p-4 rounded-3xl shadow-xl ${
                       msg.sender === workerEmail
-                        ?  "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                         : "bg-gray-100 text-gray-800 border border-gray-200"
                     }`}
                   >
@@ -204,14 +209,29 @@ const WorkerChatPage = () => {
                       {msg.content && <span className="text-sm font-light">{msg.content}</span>}
                       {msg.image && (
                         <img
-                          src={`${apiInstance.defaults.baseURL}${msg.image}`}
+                          src={
+                            msg.image.startsWith('http')
+                              ? msg.image // Absolute URL (e.g., S3 in production)
+                              : `${apiInstance.defaults.baseURL}${msg.image}` // Relative path (local dev)
+                          }
                           alt="Shared image"
                           className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
-                          onClick={() => window.open(`${apiInstance.defaults.baseURL}${msg.image}`, "_blank")}
+                          onClick={() =>
+                            window.open(
+                              msg.image.startsWith('http')
+                                ? msg.image
+                                : `${apiInstance.defaults.baseURL}${msg.image}`,
+                              "_blank"
+                            )
+                          }
                         />
                       )}
                       <span className="text-xs opacity-70 mt-2">
-                        {new Date(msg.timestamp).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+                        {new Date(msg.timestamp).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
                       </span>
                     </div>
                   </div>
