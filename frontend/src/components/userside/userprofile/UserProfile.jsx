@@ -37,7 +37,7 @@ const UserProfile = () => {
           profile_picture: profilePictureUrl,
         });
         setImagePreview(profilePictureUrl || "/default-avatar.jpg");
-        console.log("Image Preview Set To:", profilePictureUrl || "/default-avatar.jpg"); // Debug log
+        
       } catch (error) {
         console.error("Error fetching profile:", error.response?.data || error.message);
         if (error.response?.status === 401) {
@@ -104,14 +104,14 @@ const UserProfile = () => {
             : `${api.defaults.baseURL}${updatedProfile.profile_picture}`) // Relative path (local dev)
         : null;
 
-      console.log("Constructed Updated Profile Picture URL:", updatedProfilePictureUrl); // Debug log
+      
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
         profile_picture: updatedProfilePictureUrl,
       });
       setImagePreview(updatedProfilePictureUrl || "/default-avatar.jpg");
-      console.log("Image Preview Set To (Post-Update):", updatedProfilePictureUrl || "/default-avatar.jpg"); // Debug log
+     
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);
