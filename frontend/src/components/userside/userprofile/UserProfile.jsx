@@ -12,20 +12,32 @@ const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Determine if we're in development mode
+  const isDevelopment = import.meta.env.MODE === 'development';
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/api/profile/");
         const profileData = response.data;
+        console.log("Profile Data:", profileData); // Debug log
+        console.log("Raw Profile Picture:", profileData.profile_picture); // Debug log
 
-        // Use the raw S3 URL directly from the backend
-        const profilePictureUrl = profileData.profile_picture || null;
+        // Construct profile picture URL dynamically
+        const profilePictureUrl = profileData.profile_picture
+          ? (profileData.profile_picture.startsWith('http')
+              ? profileData.profile_picture // Absolute URL (S3 in production)
+              : `${api.defaults.baseURL}${profileData.profile_picture}`) // Relative path (local dev)
+          : null;
+
+        console.log("Constructed Profile Picture URL:", profilePictureUrl); // Debug log
         setProfile(profileData);
         setFormData({
           ...profileData,
           profile_picture: profilePictureUrl,
         });
         setImagePreview(profilePictureUrl || "/default-avatar.jpg");
+        console.log("Image Preview Set To:", profilePictureUrl || "/default-avatar.jpg"); // Debug log
       } catch (error) {
         console.error("Error fetching profile:", error.response?.data || error.message);
         if (error.response?.status === 401) {
@@ -54,7 +66,10 @@ const UserProfile = () => {
     }
     setFormData({ ...formData, profile_picture: selectedFile });
     const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+      console.log("Image Preview Updated (File):", reader.result); // Debug log
+    };
     if (selectedFile) reader.readAsDataURL(selectedFile);
   };
 
@@ -80,15 +95,23 @@ const UserProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const updatedProfile = response.data;
+      console.log("Updated Profile Data:", updatedProfile); // Debug log
 
-      // Use the raw S3 URL directly from the backend
-      const updatedProfilePictureUrl = updatedProfile.profile_picture || null;
+      // Construct updated profile picture URL dynamically
+      const updatedProfilePictureUrl = updatedProfile.profile_picture
+        ? (updatedProfile.profile_picture.startsWith('http')
+            ? updatedProfile.profile_picture // Absolute URL (S3 in production)
+            : `${api.defaults.baseURL}${updatedProfile.profile_picture}`) // Relative path (local dev)
+        : null;
+
+      console.log("Constructed Updated Profile Picture URL:", updatedProfilePictureUrl); // Debug log
       setProfile(updatedProfile);
       setFormData({
         ...updatedProfile,
         profile_picture: updatedProfilePictureUrl,
       });
       setImagePreview(updatedProfilePictureUrl || "/default-avatar.jpg");
+      console.log("Image Preview Set To (Post-Update):", updatedProfilePictureUrl || "/default-avatar.jpg"); // Debug log
 
       Toast("success", "Profile updated successfully!");
       setIsEditing(false);
