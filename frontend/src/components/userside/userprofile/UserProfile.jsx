@@ -4,6 +4,8 @@ import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import Toast from "../../../utils/Toast";
 import api from '../../../utils/axiosInterceptor'
 import Navbar from "../Navbar";
+import axios from "axios";
+
 
 const UserProfile = () => {
   const [profile, setProfile] = useState({});
@@ -21,7 +23,7 @@ const UserProfile = () => {
 
         // Construct the full URL for the profile picture using `api.defaults.baseURL`
         const profilePictureUrl = profileData.profile_picture
-          ? `${api.defaults.baseURL}${profileData.profile_picture}`
+          ? `${profileData.profile_picture}`
           : null;
 
         setProfile(profileData);
@@ -96,7 +98,7 @@ const UserProfile = () => {
 
       // Construct the full URL for the updated profile picture
       const updatedProfilePictureUrl = updatedProfile.profile_picture
-        ? `${api.defaults.baseURL}${updatedProfile.profile_picture}`
+        ? `${updatedProfile.profile_picture}`
         : null;
 
       setProfile(updatedProfile);
