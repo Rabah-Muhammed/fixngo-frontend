@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import Toast from "../../utils/Toast";
@@ -8,11 +8,10 @@ import { FaPaperPlane, FaImage, FaArrowLeft } from "react-icons/fa";
 import ChatSidebar from "./ChatSidebar";
 import apiInstance from "../../utils/apiInstance";
 
-
 const ChatPage = () => {
   const { chatId: initialChatId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // Get navigation state
+  const location = useLocation();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
@@ -23,7 +22,7 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [activeChatId, setActiveChatId] = useState(initialChatId);
-  const workerId = location.state?.workerId; // Get workerId from state
+  const workerId = location.state?.workerId;
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -142,15 +141,15 @@ const ChatPage = () => {
 
   const handleChatSelect = (chatId) => {
     setActiveChatId(chatId);
-    navigate(`/chat/${chatId}`, { state: { workerId } }); // Preserve workerId in navigation
+    navigate(`/chat/${chatId}`, { state: { workerId } });
   };
 
   const handleBack = () => {
     if (workerId) {
-      navigate(`/worker/${workerId}/visit`); // Navigate back to VisitWorker page
+      navigate(`/worker/${workerId}/visit`);
     } else {
       Toast("error", "Worker ID not available.");
-      navigate("/services"); // Fallback
+      navigate("/services");
     }
   };
 
@@ -209,10 +208,21 @@ const ChatPage = () => {
                       {msg.content && <span className="text-sm font-light">{msg.content}</span>}
                       {msg.image && (
                         <img
-                          src={`${apiInstance.defaults.baseURL}${msg.image}`}
+                          src={
+                            msg.image.startsWith('http')
+                              ? msg.image // Absolute URL (e.g., S3 in production)
+                              : `${apiInstance.defaults.baseURL}${msg.image}` // Relative path (local dev)
+                          }
                           alt="Shared image"
                           className="mt-2 max-w-xs h-auto rounded-lg shadow-md cursor-pointer object-contain"
-                          onClick={() => window.open(`${apiInstance.defaults.baseURL}${msg.image}`, "_blank")}
+                          onClick={() =>
+                            window.open(
+                              msg.image.startsWith('http')
+                                ? msg.image
+                                : `${apiInstance.defaults.baseURL}${msg.image}`,
+                              "_blank"
+                            )
+                          }
                         />
                       )}
                       <span className="text-xs opacity-70 mt-2">
