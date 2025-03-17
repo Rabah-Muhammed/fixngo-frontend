@@ -85,8 +85,7 @@ const VisitWorker = () => {
         : `${api.defaults.baseURL}${worker.profile_picture}`) // Relative path (local dev)
     : "/default-avatar.png";
 
-  console.log("Profile Picture (Raw):", worker.profile_picture);
-  console.log("Profile Picture (Constructed):", profilePictureUrl);
+
 
   return (
     <div className="bg-gradient-to-br from-indigo-100 via-white to-indigo-100 min-h-screen">
