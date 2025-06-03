@@ -125,7 +125,7 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-700-500"></div>
       </div>
     );
   }
@@ -145,7 +145,7 @@ const UserProfile = () => {
               <motion.img
                 src={imagePreview}
                 alt="Profile"
-                className="w-40 h-40 rounded-full mx-auto object-cover border-4 border-blue-500 shadow-lg"
+                className="w-40 h-40 rounded-full mx-auto object-cover border-4 border-gray-500 shadow-lg"
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5 }}
@@ -173,7 +173,7 @@ const UserProfile = () => {
                 ))}
               </div>
               <motion.button
-                className="mt-8 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300 flex items-center justify-center mx-auto"
+                className="mt-8 px-6 py-2 bg-gray-950 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-300 flex items-center justify-center mx-auto"
                 onClick={() => setIsEditing(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -264,7 +264,7 @@ const UserProfile = () => {
                 </motion.button>
                 <motion.button
                   type="submit"
-                  className="bg-blue-600 text-white font-semibold rounded-lg py-2 px-4 hover:bg-blue-700 transition duration-300 flex items-center"
+                  className="bg-gray-950 text-white font-semibold rounded-lg py-2 px-4 hover:bg-gray-600 transition duration-300 flex items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   disabled={loading}

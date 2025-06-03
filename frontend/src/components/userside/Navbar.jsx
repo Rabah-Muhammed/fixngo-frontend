@@ -2,15 +2,18 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../features/userSlice";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaBars } from "react-icons/fa";
 import Toast from "../../utils/Toast";
-import api from "../../utils/axiosInterceptor"; // Use the `api` instance
-import { motion, AnimatePresence } from "framer-motion"; // Added for animation
+import api from "../../utils/axiosInterceptor";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const dropdownRef = useRef(null);
+  const menuRef = useRef(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
   const user = useSelector((state) => state.user.user);
@@ -19,12 +22,11 @@ const Navbar = () => {
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState({});
-  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await api.get("/api/chat/rooms/"); // Use `api` instead of `axios`
+        const response = await api.get("/api/chat/rooms/");
         const initialNotifications = {};
         response.data.forEach((room) => {
           initialNotifications[room.id] = {
@@ -78,22 +80,33 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        (dropdownRef.current && !dropdownRef.current.contains(event.target)) &&
+        (menuRef.current && !menuRef.current.contains(event.target))
+      ) {
         setShowDropdown(false);
+        setShowMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e.preventDefault();
     dispatch(logout());
     localStorage.removeItem("userAccessToken");
     localStorage.removeItem("userRefreshToken");
+    setShowMenu(false);
     navigate("/login");
   };
 
-  const handleNotificationClick = () => {
+  const handleNotificationClick = (e) => {
+    e.preventDefault();
     setShowDropdown((prev) => !prev);
   };
 
@@ -104,25 +117,49 @@ const Navbar = () => {
     }));
     setUnreadCount((prev) => prev - (notifications[chatId]?.count || 0));
     setShowDropdown(false);
+    setShowMenu(false);
     navigate(`/chat/${chatId}`);
   };
 
+  const toggleMenu = (e) => {
+    e.preventDefault();
+    setShowMenu((prev) => !prev);
+  };
+
+  // Common button classes for consistent sizing
+  const buttonClasses = "px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm w-full sm:w-auto text-center mt-2 sm:mt-0 flex items-center justify-center h-10";
+
   return (
     <nav className="bg-white fixed shadow-md top-0 left-0 w-full z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <img src="/images/logo.png" alt="Logo" className="w-8 h-8 mr-2" />
-            <Link to="/" className="text-black text-2xl font-bold">
-              FixNgo
-            </Link>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center py-4">
+          <div className="flex items-center w-full sm:w-auto justify-between">
+            <div className="flex items-center">
+              <img src="/images/logo.png" alt="Logo" className="w-8 h-8 mr-2" />
+              <Link to="/" className="text-black text-2xl font-bold" onClick={() => setShowMenu(false)}>
+                FixNgo
+              </Link>
+            </div>
+            <button
+              onClick={toggleMenu}
+              className="sm:hidden p-2 text-black focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <FaBars size={24} />
+            </button>
           </div>
 
-          <ul className="flex space-x-4 items-center">
+          <ul
+            ref={menuRef}
+            className={`${
+              showMenu ? "block" : "hidden"
+            } sm:flex flex-col sm:flex-row sm:space-x-4 items-center w-full sm:w-auto mt-4 sm:mt-0 transition-all duration-300`}
+          >
             <li>
               <Link
                 to="/services"
-                className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                className={buttonClasses}
+                onClick={() => setShowMenu(false)}
               >
                 Services
               </Link>
@@ -133,7 +170,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/signup"
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
+                    onClick={() => setShowMenu(false)}
                   >
                     Register
                   </Link>
@@ -141,7 +179,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/login"
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
+                    onClick={() => setShowMenu(false)}
                   >
                     Login
                   </Link>
@@ -149,7 +188,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/worker/signup"
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
+                    onClick={() => setShowMenu(false)}
                   >
                     Sign up as Expert
                   </Link>
@@ -160,7 +200,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/bookings"
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
+                    onClick={() => setShowMenu(false)}
                   >
                     Bookings
                   </Link>
@@ -168,7 +209,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/profile"
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
+                    onClick={() => setShowMenu(false)}
                   >
                     Profile
                   </Link>
@@ -176,14 +218,15 @@ const Navbar = () => {
                 <li className="relative" ref={dropdownRef}>
                   <button
                     onClick={handleNotificationClick}
-                    className="p-2 text-black hover:text-gray-800 transition duration-300"
+                    className={`${buttonClasses} relative`}
                   >
-                    <FaBell size={20} />
+                    <FaBell size={20} className="sm:mx-0 mx-2" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute top-0 right-0 sm:top-0 sm:right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {unreadCount}
                       </span>
                     )}
+                    <span className="sm:hidden">Notifications</span>
                   </button>
                   <AnimatePresence>
                     {showDropdown && (
@@ -192,7 +235,7 @@ const Navbar = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-72 bg-gradient-to-br from-white to-gray-100 shadow-xl rounded-xl border border-gray-200 z-50 max-h-72 overflow-y-auto"
+                        className="absolute right-0 mt-2 w-full sm:w-72 bg-gradient-to-br from-white to-gray-100 shadow-xl rounded-xl border border-gray-200 z-50 max-h-72 overflow-y-auto"
                       >
                         {Object.keys(notifications).length === 0 || unreadCount === 0 ? (
                           <div className="p-4 text-gray-500 text-sm text-center">No new messages</div>
@@ -220,7 +263,7 @@ const Navbar = () => {
                 <li>
                   <button
                     onClick={handleLogout}
-                    className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition duration-300 text-sm"
+                    className={buttonClasses}
                   >
                     Logout
                   </button>

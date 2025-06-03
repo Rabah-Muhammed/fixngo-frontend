@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "../Navbar"; // Assuming you have a Navbar component
-import Toast from "../../../utils/Toast"; // Importing the Toast function
+import Navbar from "../Navbar"; 
+import Toast from "../../../utils/Toast"; 
 import apiInstance from "../../../utils/apiInstance";
 
 const SignupPage = () => {
@@ -38,7 +38,7 @@ const SignupPage = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-gray-100 flex items-center justify-center pt-20">
-        {/* Added top padding (pt-20) to prevent content from hiding under the navbar */}
+        
         <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
           <h2 className="text-2xl font-bold text-center text-black mb-6">Sign Up</h2>
           <form onSubmit={handleSubmit} className="space-y-4">

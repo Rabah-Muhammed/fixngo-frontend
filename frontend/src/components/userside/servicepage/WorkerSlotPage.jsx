@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Navbar";
 import Toast from "../../../utils/Toast";
@@ -11,7 +13,7 @@ const WorkerSlotPage = () => {
   const { workerId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { serviceId } = location.state || {}; // Get serviceId from state
+  const { serviceId } = location.state || {};
 
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -47,7 +49,9 @@ const WorkerSlotPage = () => {
         setSlots(slotsResponse.data.slots);
         setServiceName(serviceResponse.data.name);
       } catch (error) {
-        console.error("Failed to load data.", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to load data:", error.response?.data || error.message);
+        }
         Toast("error", "Failed to load worker slots. Please try again.");
       } finally {
         setLoading(false);
@@ -67,7 +71,7 @@ const WorkerSlotPage = () => {
       state: {
         workerId,
         slot: selectedSlot,
-        serviceId, // Pass serviceId to checkout
+        serviceId,
       },
     });
   };
@@ -75,37 +79,56 @@ const WorkerSlotPage = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="min-h-screen bg-white flex flex-col items-center pt-20 pb-16">
-        <h2 className="text-2xl font-bold text-center text-indigo-600 mb-4">Available Slots</h2>
-        <p className="text-lg text-gray-600 text-center mb-6">for {serviceName}</p>
+      <br />
+      <div className="container mx-auto px-4 pt-16 py-10">
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4"
+        >
+          Available Slots
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-base md:text-lg text-gray-600 text-center mb-10"
+        >
+          for {serviceName}
+        </motion.p>
 
         {slots.length > 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 w-full max-w-6xl"
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
           >
-            {slots.map((slot) => (
-              <SlotCard key={slot.id} slot={slot} selectedSlot={selectedSlot} setSelectedSlot={setSelectedSlot} />
+            {slots.map((slot, index) => (
+              <SlotCard
+                key={slot.id}
+                slot={slot}
+                index={index}
+                selectedSlot={selectedSlot}
+                setSelectedSlot={setSelectedSlot}
+              />
             ))}
           </motion.div>
         ) : (
-          <p className="text-center text-gray-700 mt-8">No slots available for this worker.</p>
+          <NoSlotsAvailable navigate={navigate} serviceName={serviceName} />
         )}
 
-        <div className="mt-6">
+        <div className="mt-8 text-center">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleProceedToCheckout}
             disabled={!selectedSlot}
-            className={`px-6 py-2 text-lg rounded-lg shadow-md transition ${
-              !selectedSlot
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-indigo-500 text-white hover:bg-indigo-700"
+            className={`px-6 py-2 rounded-lg font-medium text-base focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
+              !selectedSlot ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"
             }`}
           >
             Proceed to Checkout
@@ -117,32 +140,67 @@ const WorkerSlotPage = () => {
   );
 };
 
-const SlotCard = ({ slot, selectedSlot, setSelectedSlot }) => (
+const SlotCard = ({ slot, index, selectedSlot, setSelectedSlot }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-    onClick={() => setSelectedSlot(slot)}
-    className={`p-4 bg-white rounded-lg shadow-md cursor-pointer transition ${
-      selectedSlot?.id === slot.id ? "border-2 border-indigo-500 bg-indigo-100" : "hover:bg-gray-100"
+    transition={{ duration: 0.4, delay: index * 0.1 }}
+    onClick={() => slot.is_available && setSelectedSlot(slot)}
+    className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer transition ${
+      selectedSlot?.id === slot.id
+        ? "border-2 border-black bg-gray-100"
+        : slot.is_available
+        ? "hover:bg-gray-100"
+        : "opacity-50 cursor-not-allowed"
     }`}
+    aria-label={`Select slot starting at ${format(new Date(slot.start_time), "yyyy-MM-dd hh:mm a", {
+      timeZone: "Asia/Kolkata",
+    })}`}
   >
-    <p className="text-sm text-gray-700">
+    <p className="text-sm font-medium text-gray-900">
       {format(new Date(slot.start_time), "yyyy-MM-dd hh:mm a", { timeZone: "Asia/Kolkata" })}
     </p>
-    <p className="text-sm text-gray-700">
+    <p className="text-sm text-gray-600">
       {format(new Date(slot.end_time), "yyyy-MM-dd hh:mm a", { timeZone: "Asia/Kolkata" })}
     </p>
-    <p className={`text-xs ${slot.is_available ? "text-green-500" : "text-red-500"}`}>
+    <p className={`text-xs font-semibold ${slot.is_available ? "text-green-500" : "text-red-500"}`}>
       {slot.is_available ? "Available" : "Booked"}
     </p>
   </motion.div>
 );
 
 const LoadingSpinner = () => (
-  <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+  <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-10 h-10 border-3 border-gray-200 border-t-black rounded-full mb-3"
+    />
+    <p className="text-base font-medium text-gray-600">Loading slots...</p>
   </div>
+);
+
+const NoSlotsAvailable = ({ serviceName, navigate }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5 }}
+    className="text-center p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-md mx-auto mt-10"
+  >
+    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Slots Available</h3>
+    <p className="text-base text-gray-600 mb-4">
+      No available slots for the service: <span className="font-semibold text-gray-900">{serviceName}</span>
+    </p>
+    <p className="text-sm text-gray-600 mb-6">Please check back later or try a different worker.</p>
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => navigate("/services")}
+      className="px-4 py-2 bg-black text-white rounded-lg font-medium text-base focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+    >
+      Back to Services
+    </motion.button>
+  </motion.div>
 );
 
 export default WorkerSlotPage;

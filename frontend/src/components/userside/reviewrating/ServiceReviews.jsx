@@ -1,11 +1,11 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
 import Toast from "../../../utils/Toast";
+import { motion } from "framer-motion"; // Added for animations
 import api from "../../../utils/axiosInterceptor";
-
-
 
 const ServiceReviews = () => {
   const { serviceId } = useParams();
@@ -28,34 +28,62 @@ const ServiceReviews = () => {
     fetchReviews();
   }, [serviceId]);
 
-  if (loading)
-    return <p className="text-center text-gray-500 animate-pulse mt-4">Loading reviews...</p>;
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col justify-center items-center h-64" // Aligned with other pages
+      >
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-10 h-10 border-3 border-gray-200 border-t-gray-800 rounded-full mb-3" // Aligned with LoadingSpinner
+        />
+        <p className="text-sm font-medium text-gray-600">Loading reviews...</p> {/* Aligned typography */}
+      </motion.div>
+    );
+  }
 
   return (
-    <div className="mt-12 bg-white shadow-lg rounded-lg p-6 md:p-8">
-      <h2 className="text-3xl font-bold text-indigo-700 mb-6 text-center">Customer Reviews</h2>
+    <div className="py-6"> {/* Removed bg-white, adjusted padding */}
+
 
       {reviews.length === 0 ? (
-        <p className="text-gray-500 text-center text-lg">No reviews yet for this service.</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 text-center" // Aligned empty state
+        >
+          <p className="text-sm text-gray-600">No reviews yet for this service.</p> {/* Aligned typography */}
+        </motion.div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4"> {/* Adjusted spacing */}
           {reviews.map((review) => (
-            <div
+            <motion.div
               key={review.id}
-              className="bg-gray-100 p-5 rounded-lg shadow-md transition duration-300 hover:shadow-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 transition-shadow hover:shadow-md" // Aligned card style
             >
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-semibold text-gray-800">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-lg font-semibold text-gray-900">
                   {review.user_name || review.user_email}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  {new Date(review.created_at).toLocaleDateString()}
+                <p className="text-sm text-gray-600">
+                  {new Date(review.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
 
-              {/* Display Worker Name */}
               {review.worker_name && (
-                <p className="text-gray-600 mt-2 italic">
+                <p className="text-sm text-gray-600 mt-1 italic">
                   Review for worker: {review.worker_name}
                 </p>
               )}
@@ -64,15 +92,17 @@ const ServiceReviews = () => {
                 {[...Array(5)].map((_, index) => (
                   <FaStar
                     key={index}
-                    className={`h-5 w-5 transition duration-300 ${
-                      index < review.rating ? "text-yellow-500" : "text-gray-300"
-                    }`}
+                    className={`h-4 w-4 ${
+                      index < review.rating ? "text-yellow-500" : "text-gray-200"
+                    }`} // Aligned star styling
                   />
                 ))}
               </div>
 
-              <p className="text-gray-600 mt-3 italic">{review.review || "No comment provided."}</p>
-            </div>
+              <p className="text-sm text-gray-600 mt-2 italic">
+                {review.review || "No comment provided."}
+              </p>
+            </motion.div>
           ))}
         </div>
       )}

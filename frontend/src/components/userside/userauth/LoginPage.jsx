@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../Navbar";
 import { useDispatch } from "react-redux";
-import { loginn } from "../../../features/userSlice"; // Import the login action
-import Toast from "../../../utils/Toast"; // Import the custom Toast function
+import { loginn } from "../../../features/userSlice"; 
+import Toast from "../../../utils/Toast"; 
 import GoogleLoginButton from "./GoogleLoginButton";
 import apiInstance from "../../../utils/apiInstance";
 
@@ -35,7 +35,7 @@ const LoginPage = () => {
         username: response.data.user.username || (() => { throw new Error("Username not provided by backend"); })(),
       };
 
-      // Dispatch login action to update Redux store
+      
       dispatch(
         loginn({
           user: userData,
@@ -44,22 +44,20 @@ const LoginPage = () => {
         })
       );
 
-      // Save tokens with custom names
+      
       localStorage.setItem("userAccessToken", response.data.access); 
       localStorage.setItem("userRefreshToken", response.data.refresh); 
       localStorage.setItem("userEmail", userData.email);
 
-      // Show success toast
       Toast("success", "Login successful! Redirecting...");
 
-      navigate("/"); // Redirect to home page after successful login
+      navigate("/"); 
     } catch (error) {
-      // Extract error message from backend response or handle network error
+      
       const errorMessage =
         error.response?.data?.error ||
         "Unable to connect to the server. Please try again later.";
 
-      // Show appropriate toast message
       Toast("error", errorMessage);
     } finally {
       setLoading(false);
@@ -114,7 +112,7 @@ const LoginPage = () => {
             </div>
           </form>
           
-          {/* Google Login Button */}
+          
           <div className="my-4">
             <GoogleLoginButton />
           </div>

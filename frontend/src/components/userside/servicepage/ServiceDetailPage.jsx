@@ -13,6 +13,8 @@ const ServiceDetailPage = () => {
   const { serviceId } = useParams();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,11 +29,11 @@ const ServiceDetailPage = () => {
 
       try {
         const response = await api.get(`/api/services/${serviceId}/`);
-        console.log("Service Response:", response.data); // Debug log
+        console.log("Service Response:", response.data);
         setService(response.data);
       } catch (error) {
         console.error("Failed to load service details:", error.response?.data || error.message);
-        Toast("error", "Failed to load service details. Please try again.");
+        Toast("error", "Failed to load service details. Please try interntry again.");
       } finally {
         setLoading(false);
       }
@@ -43,86 +45,270 @@ const ServiceDetailPage = () => {
   if (loading) return <LoadingSpinner />;
   if (!service) return <ServiceNotFound />;
 
-  // Dynamically construct the service image URL
   const serviceImageUrl = service.image
     ? (service.image.startsWith('http')
-        ? service.image // Absolute URL (S3 in production)
-        : `${api.defaults.baseURL}${service.image}`) // Relative path (local dev)
-    : null;
+        ? service.image
+        : `${api.defaults.baseURL}${service.image.startsWith('/') ? '' : '/'}${service.image}`)
+    : "/default-service-image.jpg";
 
-
+  console.log("Service Image URL:", serviceImageUrl);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden"
-        >
-          {serviceImageUrl && (
-            <div className="relative h-80 overflow-hidden">
-              <img
-                src={serviceImageUrl}
-                alt={service.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <h2 className="absolute bottom-6 left-6 text-4xl font-bold text-white">{service.name}</h2>
+
+      {/* Hero Section */}
+      <div className="relative pt-16">
+        <div className="relative h-[50vh] md:h-[60vh] overflow-hidden">
+          {!imageError ? (
+            <motion.img
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              src={serviceImageUrl}
+              alt={service.name}
+              className="w-full h-full object-cover"
+              onError={() => {
+                console.error("Failed to load image:", serviceImageUrl);
+                setImageError(true);
+              }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-500 text-base">Image not available</span>
             </div>
           )}
-
-          <div className="p-8">
-            <p className="text-xl text-gray-700 mb-8 leading-relaxed">{service.description}</p>
-            <div className="flex items-center justify-between mb-8">
-              <p className="text-2xl font-bold text-indigo-700">
-                Hourly Charge: <span className="text-3xl text-indigo-600">${service.hourly_rate}</span>/hr
-              </p>
-              <div className="text-gray-500">
-                <span>Available Workers</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="max-w-3xl mx-4 md:mx-6 text-left"
+            >
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3">
+                {service.name}
+              </h1>
+              <p className="text-base md:text-lg text-white/90 mb-4">{service.description}</p>
+              <div className="flex items-center gap-4">
+                <div className="bg-white/90 rounded-lg px-4 py-2">
+                  <span className="text-lg font-bold text-gray-900">₹{service.hourly_rate}</span>
+                  <span className="text-sm text-gray-600 ml-1">/hour</span>
+                </div>
+                <div className="flex items-center text-yellow-400 text-sm">
+                  {'★'.repeat(4)}☆
+                  <span className="text-white/90 ml-1 text-sm">4.8/5</span>
+                </div>
               </div>
-            </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
 
-            <div className="flex justify-between items-center mt-12">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/services")}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg text-lg font-semibold shadow-md hover:bg-gray-200 transition duration-300"
+      {/* Sticky Navigation */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200"
+      >
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <nav className="flex gap-4">
+              {[
+                { id: 'overview', label: 'Overview' },
+                { id: 'features', label: 'Features' },
+                { id: 'reviews', label: 'Reviews' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative py-2 text-base font-medium ${
+                    activeTab === tab.id ? 'text-black' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"
+                    />
+                  )}
+                </button>
+              ))}
+            </nav>
+
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-10">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-6">
+          {/* Left Column - Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {activeTab === 'overview' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                Back to Services
-              </motion.button>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Service</h2>
+                <p className="text-base text-gray-700 leading-relaxed">{service.description}</p>
+                <div className="grid md:grid-cols-2 gap-4 mt-6">
+                  {[
+                    { icon: "⚡", title: "Fast Service", desc: "Quick and efficient delivery" },
+                    { icon: "🛡️", title: "Quality Assured", desc: "Professional standards maintained" },
+                    { icon: "💬", title: "Support Available", desc: "Help when you need it" },
+                    { icon: "🎯", title: "Skilled Workers", desc: "Experienced professionals" },
+                  ].map((feature, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="flex items-start gap-3 p-3 bg-gray-100 rounded-lg"
+                    >
+                      <span className="text-xl">{feature.icon}</span>
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-900">{feature.title}</h3>
+                        <p className="text-sm text-gray-600">{feature.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'features' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">What's Included</h2>
+                <div className="space-y-3">
+                  {[
+                    "Professional service delivery",
+                    "High-quality materials",
+                    "Experienced and vetted workers",
+                    "Post-service cleanup",
+                    "Customer-focused support",
+                    "24/7 availability",
+                  ].map((feature, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                      <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-base text-gray-700">{feature}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Customer Reviews</h2>
+                <ServiceReviews />
+              </motion.div>
+            )}
+          </div>
+
+          {/* Right Column - Booking Card */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="sticky top-28 bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+            >
+              <div className="text-center mb-4">
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  ₹{service.hourly_rate}
+                  <span className="text-sm text-gray-600">/hour</span>
+                </div>
+                <div className="flex items-center justify-center text-yellow-400 text-sm">
+                  {'★'.repeat(4)}☆
+                  <span className="text-gray-600 ml-1">4.8/5</span>
+                </div>
+              </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/services/${serviceId}/workers`)}
-                className="px-8 py-3 bg-indigo-600 text-white rounded-lg text-lg font-semibold shadow-lg hover:bg-indigo-700 transition duration-300"
+                className="w-full bg-black text-white py-2 rounded-lg font-medium text-base"
               >
-                View Workers
+                Book This Service
               </motion.button>
-            </div>
-
-            {/* Display Service Reviews Below Service Details */}
-            <ServiceReviews />
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </main>
+
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pb-6">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/services")}
+          className="flex items-center text-base text-gray-600 hover:text-gray-900 font-medium"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Services
+        </motion.button>
+      </div>
+
       <Footer />
     </div>
   );
 };
 
 const LoadingSpinner = () => (
-  <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
+  <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-10 h-10 border-3 border-gray-200 border-t-black rounded-full mb-3"
+    />
+    <p className="text-base font-medium text-gray-600">Loading service details...</p>
   </div>
 );
 
 const ServiceNotFound = () => (
-  <div className="flex justify-center items-center h-screen">
-    <p className="text-2xl text-gray-700 font-semibold">Service not found.</p>
+  <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="text-center max-w-md"
+    >
+      <div className="text-5xl mb-4">🔍</div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-3">Service Not Found</h2>
+      <p className="text-base text-gray-600 mb-6">The service you're looking for doesn't exist or has been removed.</p>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => window.history.back()}
+        className="bg-black text-white px-4 py-2 rounded-lg font-medium text-base"
+      >
+        Go Back
+      </motion.button>
+    </motion.div>
   </div>
 );
 

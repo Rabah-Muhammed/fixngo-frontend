@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import Toast from "../../../utils/Toast";
+import { motion } from "framer-motion";
 import api from "../../../utils/axiosInterceptor";
 
 const CheckoutPage = () => {
@@ -19,15 +20,18 @@ const CheckoutPage = () => {
   const [platformFee, setPlatformFee] = useState(0);
   const [remainingBalance, setRemainingBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const isRemainingPayment = Boolean(bookingId);
 
   useEffect(() => {
-    console.log("Checkout Page State:", location.state);
-    console.log("Slot Data:", slot);
+    if (process.env.NODE_ENV === "development") {
+      console.log("Checkout Page State:", location.state);
+      console.log("Slot Data:", slot);
+    }
 
     if (!workerId || !serviceId || (!slot && !bookingId)) {
       Toast("error", "Invalid checkout session. Please try again.");
-      navigate("/");
+      navigate("/services");
       return;
     }
 
@@ -78,9 +82,11 @@ const CheckoutPage = () => {
           setRemainingBalance(remainingAmount.toFixed(2));
         }
       } catch (error) {
-        console.error("Fetch error:", error.response?.data || error.message);
-        Toast("error", "Failed to load details.");
-        navigate("/");
+        if (process.env.NODE_ENV === "development") {
+          console.error("Fetch error:", error.response?.data || error.message);
+        }
+        Toast("error", "Failed to load checkout details.");
+        navigate("/services");
       } finally {
         setLoading(false);
       }
@@ -122,25 +128,15 @@ const CheckoutPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-t-4 border-blue-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-xl font-semibold text-gray-700">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
-  // Dynamically construct the service image URL
+  if (!service || !worker) return <NoDataAvailable navigate={navigate} />;
+
   const serviceImageUrl = service?.image
-    ? (service.image.startsWith('http')
-        ? service.image // Absolute URL (S3 in production)
-        : `${api.defaults.baseURL}${service.image}`) // Relative path (local dev)
+    ? (service.image.startsWith("http")
+        ? service.image
+        : `${api.defaults.baseURL}${service.image.startsWith("/") ? "" : "/"}${service.image}`)
     : "/default-service.png";
-
-
 
   const workerName = worker?.username || "Unknown Worker";
   const startTime = slot?.start_time ? new Date(slot.start_time) : null;
@@ -151,63 +147,95 @@ const CheckoutPage = () => {
       : "N/A";
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8">
-          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
-            {isRemainingPayment ? "Pay Remaining Balance" : "Confirm Your Booking"}
-          </h1>
+      <div className="container mx-auto px-4 pt-20 pb-10">
+        {/* Progress Indicator */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="flex justify-center">
-              <img
-                src={serviceImageUrl}
-                alt="Service"
-                className="w-full max-w-md h-72 object-cover rounded-xl shadow-md transition-transform duration-300 transform hover:scale-105"
-              />
+
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8"
+        >
+          {isRemainingPayment ? "Pay Remaining Balance" : "Confirm Your Booking"}
+        </motion.h1>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {/* Image Section */}
+            <div className="flex justify-center items-center">
+              {!imageError ? (
+                <motion.img
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  src={serviceImageUrl}
+                  alt={`Image of ${service.name}`}
+                  className="w-full h-80 md:h-96 object-cover rounded-lg border border-gray-200" // Increased image size
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="w-full h-80 md:h-96 bg-gray-200 flex items-center justify-center rounded-lg border border-gray-200">
+                  <span className="text-gray-500 text-base">Image not available</span>
+                </div>
+              )}
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-xl shadow-lg">
-              <h2 className="text-3xl font-bold text-gray-800">{service?.name || "Service Name"}</h2>
-              <p className="text-lg text-gray-700 mt-2">
-                <span className="font-semibold">Worker:</span> {workerName}
-              </p>
-              <p className="text-lg text-gray-700">
-                <span className="font-semibold">Service Area:</span> {worker?.service_area || "Not Available"}
-              </p>
+            {/* Details Section */}
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">{service?.name || "Service Name"}</h2>
+              
+              {/* Service Information */}
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Service Details</h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  <span className="font-medium">Worker:</span> {workerName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Service Area:</span> {worker?.service_area || "Not Available"}
+                </p>
+              </div>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Date:</span>
-                  <span className="font-semibold">
+              {/* Booking Information */}
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Booking Details</h3>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Date:</span>
+                  <span className="text-gray-900">
                     {slot?.start_time ? format(new Date(slot.start_time), "MMM dd, yyyy") : "N/A"}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Time:</span>
-                  <span className="font-semibold">{formattedTime}</span>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-600">Time:</span>
+                  <span className="text-gray-900">{formattedTime}</span>
                 </div>
               </div>
 
-              <hr className="my-4 border-gray-300" />
+              <hr className="my-4 border-gray-200" />
 
-              <h3 className="text-xl font-semibold text-gray-800">Payment Breakdown</h3>
-              <div className="space-y-2 mt-2">
+              {/* Payment Breakdown */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Breakdown</h3>
                 {!isRemainingPayment && (
-                  <div className="flex justify-between">
-                    <span>Platform Fee (Paid Now):</span>
-                    <span>${platformFee.toFixed(2)}</span>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600">Platform Fee (Paid Now):</span>
+                    <span className="text-gray-900">₹{platformFee.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-lg font-bold text-red-600">
+                <div className="flex justify-between text-sm font-bold text-gray-900">
                   <span>Remaining Balance:</span>
-                  <span>${remainingBalance}</span>
+                  <span>₹{remainingBalance}</span>
                 </div>
               </div>
 
-              <hr className="my-4 border-gray-300" />
-
+              {/* PayPal Button */}
               <PayPalButtons
                 style={{ layout: "vertical", color: "blue" }}
                 createOrder={(data, actions) =>
@@ -224,11 +252,64 @@ const CheckoutPage = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Back Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-6 text-center"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/services")}
+            className="px-6 py-2 bg-gray-800 text-white rounded-lg font-medium text-base focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2"
+            aria-label="Return to services page"
+          >
+            Back to Services
+          </motion.button>
+        </motion.div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
+
+const LoadingSpinner = () => (
+  <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-10 h-10 border-3 border-gray-200 border-t-gray-800 rounded-full mb-3"
+    />
+    <p className="text-base font-medium text-gray-600">Loading checkout details...</p>
+  </div>
+);
+
+const NoDataAvailable = ({ navigate }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5 }}
+    className="text-center p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-md mx-auto mt-16"
+  >
+    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">Checkout Unavailable</h3>
+    <p className="text-sm text-gray-600 mb-4">
+      Unable to load checkout details. Please try again.
+    </p>
+    <p className="text-sm text-gray-600 mb-6">Select a service to start a new booking.</p>
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => navigate("/services")}
+      className="px-6 py-2 bg-gray-800 text-white rounded-lg font-medium text-base focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2"
+      aria-label="Return to services page"
+    >
+      Back to Services
+    </motion.button>
+  </motion.div>
+);
 
 export default CheckoutPage;

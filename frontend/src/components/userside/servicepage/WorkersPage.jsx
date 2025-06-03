@@ -47,16 +47,17 @@ const WorkersPage = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 via-white to-indigo-50 min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="container mx-auto px-4 py-24">
+      <br />
+      <div className="container mx-auto px-4 pt-16 py-10">
         {workers.length > 0 ? (
           <>
             <motion.h2
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl font-bold text-center text-indigo-600 mb-4"
+              className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4"
             >
               Select a Worker
             </motion.h2>
@@ -64,7 +65,7 @@ const WorkersPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-2xl text-center text-gray-600 mb-16"
+              className="text-base md:text-lg text-gray-600 text-center mb-10"
             >
               for {serviceName}
             </motion.p>
@@ -72,7 +73,7 @@ const WorkersPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
             >
               {workers.map((worker, index) => (
                 <WorkerCard
@@ -95,8 +96,13 @@ const WorkersPage = () => {
 };
 
 const LoadingSpinner = () => (
-  <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div>
+  <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-10 h-10 border-3 border-gray-200 border-t-black rounded-full mb-3"
+    />
+    <p className="text-base font-medium text-gray-600">Loading workers...</p>
   </div>
 );
 
@@ -105,52 +111,50 @@ const NoWorkersFound = ({ serviceName, navigate }) => (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.5 }}
-    className="text-center p-12 bg-white rounded-lg shadow-xl max-w-2xl mx-auto mt-16"
+    className="text-center p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-md mx-auto mt-10"
   >
-    <h3 className="text-3xl font-semibold text-gray-800 mb-4">No Workers Available</h3>
-    <p className="text-xl text-gray-600 mb-4">
+    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Workers Available</h3>
+    <p className="text-base text-gray-600 mb-4">
       We couldn't find any workers for the service:{" "}
-      <span className="font-semibold text-indigo-600">{serviceName}</span>
+      <span className="font-semibold text-gray-900">{serviceName}</span>
     </p>
-    <p className="text-lg text-gray-600 mb-8">Please check back later or try a different service.</p>
+    <p className="text-sm text-gray-600 mb-6">Please check back later or try a different service.</p>
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => navigate("/services")}
-      className="px-6 py-3 bg-indigo-600 text-white rounded-full text-lg font-medium transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      className="px-4 py-2 bg-black text-white rounded-lg font-medium text-base focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
     >
-      Go Back to Services
+      Back to Services
     </motion.button>
   </motion.div>
 );
 
 const WorkerCard = ({ worker, index, navigate, serviceId }) => {
-  // Dynamically construct the profile picture URL
   const profilePictureUrl = worker.profile_picture
     ? (worker.profile_picture.startsWith('http')
-        ? worker.profile_picture // Absolute URL (S3 in production)
-        : `${api.defaults.baseURL}${worker.profile_picture}`) // Relative path (local dev)
+        ? worker.profile_picture
+        : `${api.defaults.baseURL}${worker.profile_picture.startsWith('/') ? '' : '/'}${worker.profile_picture}`)
     : "/default-avatar.png";
-
-
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="bg-white rounded-lg shadow-lg p-4 flex flex-col items-center hover:shadow-xl transition-shadow duration-300 w-full max-w-xs"
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col items-center hover:shadow-md transition-shadow duration-300"
     >
       <img
         src={profilePictureUrl}
-        alt={worker.username}
-        className="w-20 h-20 rounded-full object-cover border-4 border-indigo-400 mb-4"
+        alt={`Profile picture of ${worker.username}`}
+        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 mb-3"
+        onError={(e) => (e.target.src = "/default-avatar.png")}
       />
-      <h3 className="text-lg font-semibold text-gray-800 mb-2">{worker.username}</h3>
-      <div className="flex items-center space-x-2 mb-4">
+      <h3 className="text-base font-semibold text-gray-900 mb-2">{worker.username}</h3>
+      <div className="flex items-center space-x-2 mb-3">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 text-gray-500"
+          className="h-4 w-4 text-gray-500"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -162,25 +166,35 @@ const WorkerCard = ({ worker, index, navigate, serviceId }) => {
         </svg>
         <p className="text-sm text-gray-600">{worker.service_area || "Not specified"}</p>
       </div>
+      <div className="flex items-center text-yellow-400 text-sm mb-3">
+        {'★'.repeat(4)}☆
+        <span className="text-gray-600 ml-1 text-sm">4.8/5</span>
+      </div>
       <div className="space-y-2 w-full">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => navigate(`/worker/${worker.id}/visit`)}
-          className="px-4 py-2 w-full rounded-full text-sm font-medium transition bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-black text-white py-2 rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         >
           View Profile
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => navigate(`/worker/${worker.id}/slots`, { state: { serviceId } })}
-          className="px-4 py-2 w-full rounded-full text-sm font-medium transition bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="w-full bg-black text-white py-2 rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         >
           View Slots
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => navigate(`/worker/${worker.id}/reviews`)}
-          className="px-4 py-2 w-full rounded-full text-sm font-medium transition bg-gray-500 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="w-full bg-black text-white py-2 rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         >
           View Reviews
-        </button>
+        </motion.button>
       </div>
     </motion.div>
   );

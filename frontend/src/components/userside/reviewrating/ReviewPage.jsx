@@ -1,13 +1,13 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import ReactStars from "react-stars";
 import Toast from "../../../utils/Toast";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import { motion } from "framer-motion"; // Added for animations
 import api from "../../../utils/axiosInterceptor";
-
-
 
 const ReviewPage = () => {
   const { bookingId } = useParams();
@@ -89,55 +89,100 @@ const ReviewPage = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100"> {/* Aligned with other pages */}
       <Navbar />
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center pt-20 pb-16">
-        <div className="bg-white shadow-lg rounded-lg w-full max-w-2xl p-8">
-          <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">
-            {existingReview ? "Edit Your Review" : "Write a Review"}
-          </h2>
+      <div className="container mx-auto px-4 pt-20 pb-10"> {/* Aligned padding */}
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8"
+        >
+          {existingReview ? "Edit Your Review" : "Write a Review"}
+        </motion.h2>
 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-5xl mx-auto bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8" // Aligned card style
+        >
           {loading ? (
-            <p className="text-center text-gray-500">Loading...</p>
+            <LoadingSpinner />
           ) : (
-            <>
-              <label className="block text-gray-700 font-semibold mb-2">Your Rating:</label>
-              <div className="flex justify-center mb-4">
-                <ReactStars
-                  count={5}
-                  value={rating}
-                  onChange={(newRating) => setRating(newRating)}
-                  size={40}
-                  color2={"#ffd700"} // Gold color for selected stars
-                  half={false} // Disables half-stars
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Your Rating:</label> {/* Aligned typography */}
+                <div className="flex justify-center mb-4">
+                  <ReactStars
+                    count={5}
+                    value={rating}
+                    onChange={(newRating) => setRating(newRating)}
+                    size={32} // Slightly smaller for balance
+                    color2={"#ffd700"}
+                    half={false}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Your Review:</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800" // Aligned input style
+                  rows={5}
+                  placeholder="Write your experience here..."
                 />
               </div>
 
-              <label className="block text-gray-700 font-semibold mb-2">Your Review:</label>
-              <textarea
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                rows={4}
-                placeholder="Write your experience here..."
-              />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={submitReview}
+                  disabled={loading}
+                  className={`w-full sm:w-auto px-6 py-2 bg-gray-800 text-white rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 ${
+                    loading ? "opacity-50 cursor-not-allowed" : ""
+                  }`} // Aligned button style
+                  aria-label={existingReview ? "Update review" : "Submit review"}
+                >
+                  {existingReview ? "Update Review" : "Submit Review"}
+                </motion.button>
 
-              <button
-                onClick={submitReview}
-                disabled={loading}
-                className={`bg-green-500 text-white px-4 py-2 rounded-md shadow-md w-full ${
-                  loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
-                }`}
-              >
-                {existingReview ? "Update Review" : "Submit Review"}
-              </button>
-            </>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/bookings")}
+                  className="w-full sm:w-auto px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium text-sm focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2" // Added back button
+                  aria-label="Back to bookings"
+                >
+                  Back to Bookings
+                </motion.button>
+              </div>
+            </div>
           )}
-        </div>
+        </motion.div>
       </div>
       <Footer />
     </div>
   );
 };
+
+const LoadingSpinner = () => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5 }}
+    className="flex flex-col justify-center items-center h-64" // Aligned with other pages
+  >
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="w-10 h-10 border-3 border-gray-200 border-t-gray-800 rounded-full mb-3" // Aligned with other pages
+    />
+    <p className="text-sm font-medium text-gray-600">Loading review details...</p> // Aligned typography
+  </motion.div>
+);
 
 export default ReviewPage;
